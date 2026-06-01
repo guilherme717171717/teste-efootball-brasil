@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Entrando — eFootball Brasil</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="assets/favicon.png">
+  <script src="js/config.js"></script>
+  <style>
+    .login-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+    }
+    .login-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      padding: 48px 40px;
+      max-width: 420px;
+      width: 100%;
+      backdrop-filter: blur(20px);
+    }
+    .login-card .spinner {
+      width: 48px;
+      height: 48px;
+      border: 3px solid var(--glass-border);
+      border-top-color: var(--neon-green);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 20px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .login-card h2 {
+      font-size: 1.3rem;
+      margin-bottom: 8px;
+    }
+    .login-card p {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+    .login-card .status {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      display: none;
+    }
+    .login-card .status.error {
+      display: block;
+      background: rgba(255, 68, 68, 0.1);
+      border: 1px solid rgba(255, 68, 68, 0.3);
+      color: var(--danger);
+    }
+    .login-card .status.success {
+      display: block;
+      background: rgba(0, 255, 136, 0.1);
+      border: 1px solid rgba(0, 255, 136, 0.3);
+      color: var(--neon-green);
+    }
+  </style>
+</head>
+<body>
+  <div class="login-page">
+    <div class="login-card">
+      <div class="spinner" id="spinner"></div>
+      <h2>Autenticando...</h2>
+      <p id="loginMessage">Aguarde enquanto verificamos sua conta Discord.</p>
+      <div class="status" id="statusBox"></div>
+      <div style="margin-top:20px;display:none;" id="retryBtn">
+        <button class="btn btn-primary" id="btnVoltar">Voltar ao Início</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var loginBasePath = (window.SITE_CONFIG && window.SITE_CONFIG.BASE_PATH) || '';
+
+    document.getElementById('btnVoltar').addEventListener('click', function() {
+      window.location.href = loginBasePath || '/';
+    });
+
+    async function handleCallback() {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get('code');
+      const error = params.get('error');
+
+      const statusBox = document.getElementById('statusBox');
+      const spinner = document.getElementById('spinner');
+      const message = document.getElementById('loginMessage');
+      const retryBtn = document.getElementById('retryBtn');
+
+      if (error) {
+        spinner.style.display = 'none';
+        statusBox.className = 'status error';
+        statusBox.textContent = 'Login cancelado ou recusado. Tente novamente.';
+        message.textContent = 'Não foi possível autenticar.';
+        retryBtn.style.display = 'block';
+        return;
+      }
+
+      if (!code) {
+        spinner.style.display = 'none';
+        statusBox.className = 'status error';
+        statusBox.textContent = 'Código de autenticação não encontrado.';
+        message.textContent = 'Algo deu errado.';
+        retryBtn.style.display = 'block';
+        return;
+      }
+
+      try {
+        const apiBase = window.SITE_CONFIG?.API_BASE || '';
+        // Envia o code para o servidor (que tem o client_secret seguro)
+        const res = await fetch(apiBase + '/api/auth/discord', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code })
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || 'Falha na autenticação');
+        }
+
+        const data = await res.json();
+        const { user: userData, token: accessToken } = data;
+
+        localStorage.setItem('efootball_user', JSON.stringify(userData));
+        localStorage.setItem('efootball_token', accessToken);
+
+        spinner.style.display = 'none';
+        statusBox.className = 'status success';
+        statusBox.innerHTML = `✅ Bem-vindo, ${userData.global_name || userData.username}!`;
+        message.textContent = 'Login realizado com sucesso! Redirecionando...';
+
+        setTimeout(() => {
+          window.location.href = loginBasePath || '/';
+        }, 1500);
+
+      } catch (err) {
+        console.error('Discord OAuth error:', err);
+        spinner.style.display = 'none';
+        statusBox.className = 'status error';
+        statusBox.textContent = 'Erro ao conectar com Discord. Tente novamente.';
+        message.textContent = 'Falha na autenticação.';
+        retryBtn.style.display = 'block';
+      }
+    }
+
+    handleCallback();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel Admin — eFootball Brasil</title>
+<link rel="icon" href="assets/favicon.png">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--neon-green:#00ff88;--bg-primary:#08080d;--bg-card:rgba(18,18,26,0.6);--text-primary:#fff;--text-secondary:#888;--border:rgba(255,255,255,0.06);--font:'Segoe UI',system-ui,-apple-system,sans-serif;--danger:#ff4444;--warning:#ffaa00;--radius-sm:8px;--radius:12px}
+body{font-family:var(--font);background:var(--bg-primary);color:var(--text-primary);min-height:100vh}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--neon-green);border-radius:4px}
+
+/* Layout */
+.layout{display:flex;min-height:100vh}
+.sidebar{width:220px;background:rgba(12,12,18,0.95);border-right:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.sidebar-brand{padding:20px 16px;border-bottom:1px solid var(--border)}
+.sidebar-brand h2{font-size:1rem;font-weight:700;color:var(--neon-green)}
+.sidebar-brand p{font-size:0.7rem;color:#555;margin-top:2px}
+.sidebar-nav{flex:1;display:flex;flex-direction:column;gap:2px;padding:10px 6px;overflow-y:auto}
+.sidebar-nav button{background:transparent;border:none;color:var(--text-secondary);padding:9px 12px;border-radius:var(--radius-sm);cursor:pointer;font-size:0.8rem;text-align:left;display:flex;align-items:center;gap:10px;transition:0.2s;font-family:var(--font);width:100%}
+.sidebar-nav button:hover{background:rgba(255,255,255,0.04);color:#ddd}
+.sidebar-nav button.active{background:rgba(0,255,136,0.08);color:var(--neon-green);font-weight:600}
+.sidebar-nav button .count{background:var(--neon-green);color:#000;font-size:0.6rem;font-weight:700;padding:1px 6px;border-radius:50px;margin-left:auto}
+.sidebar-footer{padding:12px;border-top:1px solid var(--border)}
+.sidebar-footer .user-info{font-size:0.78rem;margin-bottom:8px;padding:4px 8px}
+.sidebar-footer .user-info .name{color:var(--neon-green);font-weight:600}
+.sidebar-footer .user-info .role{color:var(--text-secondary);font-size:0.7rem}
+.main{flex:1;padding:24px;overflow-y:auto;max-height:100vh}
+.main h1{font-size:1.3rem;font-weight:700;margin-bottom:16px}
+
+/* Login */
+.login-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:var(--bg-primary);display:flex;align-items:center;justify-content:center;z-index:9999}
+.login-box{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:32px;width:90%;max-width:380px;text-align:center}
+.login-box h2{font-size:1.2rem;font-weight:700;margin-bottom:4px;color:var(--neon-green)}
+.login-box p{font-size:0.8rem;color:var(--text-secondary);margin-bottom:20px}
+.login-box input{width:100%;padding:10px 14px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:0.9rem;outline:none;transition:0.2s;margin-bottom:12px}
+.login-box input:focus{border-color:var(--neon-green)}
+.login-box button{width:100%;padding:10px;background:var(--neon-green);color:#000;border:none;border-radius:var(--radius-sm);font-size:0.9rem;font-weight:600;cursor:pointer;font-family:var(--font);transition:0.2s}
+.login-box button:hover{opacity:0.9}
+.login-box .error{color:var(--danger);font-size:0.8rem;margin-top:8px;display:none}
+
+/* Table */
+.table-wrap{overflow-x:auto;background:rgba(18,18,26,0.4);border:1px solid var(--border);border-radius:var(--radius)}
+table{width:100%;border-collapse:collapse;font-size:0.82rem}
+th{text-align:left;padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text-secondary);font-size:0.68rem;text-transform:uppercase;letter-spacing:0.5px;font-weight:600}
+td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.03)}
+tr:hover td{background:rgba(255,255,255,0.02)}
+
+/* Badge */
+.badge{display:inline-block;padding:2px 10px;border-radius:50px;font-size:0.65rem;font-weight:600}
+.badge-pending{background:rgba(255,170,0,0.12);color:var(--warning)}
+.badge-open{background:rgba(255,170,0,0.12);color:var(--warning)}
+.badge-warning{background:rgba(255,170,0,0.12);color:var(--warning)}
+.badge-danger{background:rgba(255,68,68,0.12);color:var(--danger)}
+.badge-resolved{background:rgba(0,255,136,0.12);color:var(--neon-green)}
+.badge-closed{background:rgba(255,255,255,0.06);color:#666}
+.badge-active{background:rgba(0,255,136,0.12);color:var(--neon-green)}
+.badge-expired{background:rgba(255,68,68,0.12);color:var(--danger)}
+
+/* Buttons */
+.btn{padding:7px 14px;font-size:0.75rem;border-radius:6px;cursor:pointer;border:none;font-family:var(--font);transition:0.2s;display:inline-flex;align-items:center;gap:4px;font-weight:600}
+.btn-primary{background:var(--neon-green);color:#000}
+.btn-primary:hover{opacity:0.9}
+.btn-danger{background:rgba(255,68,68,0.12);color:var(--danger)}
+.btn-danger:hover{background:rgba(255,68,68,0.2)}
+.btn-ghost{background:rgba(255,255,255,0.04);color:#aaa;border:1px solid var(--border)}
+.btn-ghost:hover{background:rgba(255,255,255,0.08);color:#fff}
+.btn-warning{background:rgba(255,170,0,0.12);color:var(--warning)}
+.btn-warning:hover{background:rgba(255,170,0,0.2)}
+.btn-green{background:rgba(0,255,136,0.12);color:var(--neon-green)}
+.btn-green:hover{background:rgba(0,255,136,0.2)}
+.btn-sm{padding:5px 10px;font-size:0.7rem}
+
+/* Action bar */
+.action-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.action-bar input{padding:8px 12px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:0.82rem;outline:none;transition:0.2s}
+.action-bar input:focus{border-color:var(--neon-green)}
+.action-bar input[type=text]{flex:1;min-width:140px}
+.empty{text-align:center;padding:40px 16px;color:#555;font-size:0.85rem}
+
+/* Toast */
+.toast{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.toast-item{padding:10px 18px;border-radius:var(--radius-sm);font-size:0.82rem;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,0.5);animation:slideIn .3s ease-out;pointer-events:auto;min-width:240px}
+.toast-success{background:rgba(0,255,136,0.15);border:1px solid rgba(0,255,136,0.3);color:var(--neon-green)}
+.toast-error{background:rgba(255,68,68,0.15);border:1px solid rgba(255,68,68,0.3);color:var(--danger)}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* Modal */
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);z-index:1000;display:none;align-items:center;justify-content:center}
+.modal-overlay.active{display:flex}
+.modal-box{background:rgba(18,18,26,0.98);border:1px solid var(--border);border-radius:var(--radius);width:90%;max-width:500px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 32px 80px rgba(0,0,0,0.6)}
+.modal-header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--border)}
+.modal-header h3{font-size:0.95rem;font-weight:700}
+.modal-close{background:none;border:none;color:var(--text-secondary);font-size:1.2rem;cursor:pointer;padding:4px 8px;border-radius:6px}
+.modal-close:hover{background:rgba(255,255,255,0.06);color:#fff}
+.modal-body{flex:1;overflow-y:auto;padding:18px}
+.modal-footer{padding:10px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+
+/* Messages */
+.messages{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;max-height:360px;overflow-y:auto;padding-right:4px}
+.message{background:rgba(255,255,255,0.03);border-radius:var(--radius-sm);padding:10px 14px;font-size:0.82rem}
+.message .meta{font-size:0.7rem;color:var(--text-secondary);margin-bottom:4px}
+.message .meta strong{color:var(--neon-green)}
+.message.user{border-left:2px solid var(--warning)}
+.message.admin{border-left:2px solid var(--neon-green)}
+.reply-area{display:flex;gap:8px}
+.reply-area textarea{flex:1;padding:8px 12px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:0.82rem;outline:none;resize:none;min-height:36px}
+.reply-area textarea:focus{border-color:var(--neon-green)}
+
+/* Tab content */
+.tab-content{display:none}
+.tab-content.active{display:block}
+.stats-row{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.stat-pill{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 18px;text-align:center;min-width:100px}
+.stat-pill .num{font-size:1.3rem;font-weight:700;color:var(--neon-green)}
+.stat-pill .label{font-size:0.65rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.3px}
+.stat-pill-warning{border-color:rgba(255,170,0,0.3)}
+.stat-pill-warning .num{color:var(--warning)}
+
+/* Inline Chat */
+.chat-layout{display:flex;flex-direction:column;height:calc(100vh - 100px)}
+.chat-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.chat-header h2{font-size:1.1rem;font-weight:700;flex:1}
+.chat-header .status{font-size:0.75rem}
+.chat-body{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding-right:8px;margin-bottom:12px;min-height:0}
+.chat-msg{background:rgba(255,255,255,0.03);border-radius:var(--radius-sm);padding:10px 14px;max-width:80%;align-self:flex-start}
+.chat-msg.admin{background:rgba(0,255,136,0.06);border-left:2px solid var(--neon-green);align-self:flex-end}
+.chat-msg .meta{font-size:0.7rem;color:var(--text-secondary);margin-bottom:4px}
+.chat-msg .meta strong{color:var(--neon-green)}
+.chat-msg .meta .time{color:#555;margin-left:6px}
+.chat-msg .text{font-size:0.85rem;line-height:1.4;word-break:break-word}
+.chat-input{display:flex;gap:8px;padding-top:12px;border-top:1px solid var(--border)}
+.chat-input textarea{flex:1;padding:10px 14px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:0.85rem;outline:none;resize:none;min-height:44px;max-height:120px;transition:0.2s}
+.chat-input textarea:focus{border-color:var(--neon-green)}
+.chat-input button{padding:10px 24px;align-self:flex-end}
+.chat-empty{text-align:center;padding:60px 20px;color:#555;font-size:0.9rem}
+
+.alert-banner{background:rgba(255,170,0,0.1);border:1px solid rgba(255,170,0,0.25);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.alert-banner .icon{font-size:1.2rem}
+.alert-banner .msg{flex:1;font-size:0.82rem;color:var(--warning)}
+.alert-banner .msg strong{color:#fff}
+.alert-banner .btn{flex-shrink:0}
+tr.expiring{background:rgba(255,170,0,0.04)}
+tr.expiring:hover td{background:rgba(255,170,0,0.08)}
+tr.expiring td:first-child{border-left:2px solid var(--warning)}
+
+#userForm input, #userForm select{width:100%;padding:8px 12px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:0.85rem;outline:none;transition:0.2s;margin-bottom:8px}
+#userForm input:focus, #userForm select:focus{border-color:var(--neon-green)}
+#userForm select option{background:#12121a;color:#fff}
+
+@media(max-width:768px){
+  .sidebar{width:50px}
+  .sidebar-brand h2,.sidebar-brand p,.sidebar-nav button span:not(.icon){display:none}
+  .sidebar-nav button{padding:8px;justify-content:center}
+  .main{padding:12px}
+  .stat-pill{min-width:70px;padding:8px 12px}
+  .stat-pill .num{font-size:1rem}
+}
+</style>
+</head>
+<body>
+
+<div id="loginScreen" class="login-overlay">
+  <div class="login-box">
+    <img src="assets/logo.png" alt="eFootball Brasil" style="height:40px;margin-bottom:8px">
+    <p>Painel Administrativo</p>
+    <form onsubmit="doLogin();return false">
+      <input type="text" id="loginUser" placeholder="Usuário" autocomplete="username">
+      <input type="password" id="loginPass" placeholder="Senha" autocomplete="current-password">
+      <div class="error" id="loginError">Usuário ou senha inválidos</div>
+      <button type="submit">Entrar</button>
+    </form>
+  </div>
+</div>
+
+<div id="app" class="layout" style="display:none">
+  <div class="sidebar">
+    <div class="sidebar-brand">
+      <div style="display:flex;align-items:center;gap:8px">
+        <img src="assets/logo.png" alt="eFootball Brasil" style="height:28px">
+        <div>
+          <div style="font-size:0.9rem;font-weight:700;color:var(--neon-green)">Painel</div>
+          <div style="font-size:0.65rem;color:#555">eFootball Brasil</div>
+        </div>
+      </div>
+      <p>Admin</p>
+    </div>
+    <div class="sidebar-nav">
+      <button class="active" data-tab="tickets" onclick="switchTab('tickets')"><span>🎫</span><span>Tickets</span><span class="count" id="countTickets">0</span></button>
+      <button data-tab="reports" onclick="switchTab('reports')"><span>📢</span><span>Denúncias</span><span class="count" id="countReports">0</span></button>
+      <button data-tab="purchases" onclick="switchTab('purchases')"><span>🛒</span><span>Compras</span><span class="count" id="countPurchases">0</span></button>
+      <button data-tab="vips" onclick="switchTab('vips')"><span>⭐</span><span>VIPs</span><span class="count" id="countVips">0</span></button>
+      <button data-tab="staff" onclick="switchTab('staff')"><span>👥</span><span>Staff</span><span class="count" id="countStaff">0</span></button>
+      <button data-tab="users" onclick="switchTab('users')"><span>👤</span><span>Usuários</span><span class="count" id="countUsers">0</span></button>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="name" id="userName">—</div>
+        <div class="role" id="userRole">—</div>
+      </div>
+      <button onclick="logout()" class="btn btn-danger btn-sm" style="width:100%">🚪 Sair</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div id="tabTickets" class="tab-content active"></div>
+    <div id="tabReports" class="tab-content"></div>
+    <div id="tabPurchases" class="tab-content"></div>
+    <div id="tabVips" class="tab-content"></div>
+    <div id="tabStaff" class="tab-content"></div>
+    <div id="tabUsers" class="tab-content"></div>
+    <div id="tabTicketChat" class="tab-content"></div>
+    <div id="tabReportChat" class="tab-content"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="genericModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="genericModalTitle">Detalhes</h3>
+      <button class="modal-close" onclick="closeModal('genericModal')">✕</button>
+    </div>
+    <div class="modal-body" id="genericModalBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('genericModal')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toastContainer"></div>
+
+<script src="js/config.js"></script>
+<script>
+const API = window.SITE_CONFIG?.API_BASE || '';
+const BASE_PATH = window.SITE_CONFIG?.BASE_PATH || '';
+const WS_URL = window.SITE_CONFIG?.WS_URL || (API ? API.replace(/^http/, 'ws') : '');
+function pageUrl(path) { return BASE_PATH + '/' + path.replace(/^\//, ''); }
+const STATIC_MODE = !API;
+let TOKEN = new URLSearchParams(location.search).get('token') || sessionStorage.getItem('adminToken');
+let USER = JSON.parse(sessionStorage.getItem('adminUser') || 'null');
+let currentTab = 'tickets';
+let stores = { tickets: [], reports: [], purchases: [], vips: [], staff: [] };
+let usersList = [];
+let refreshInterval = null;
+let chatTicketId = null;
+let chatInterval = null;
+let currentChatTicketId = null;
+const VIP_PLANS = ['VIP Gold Mensal', 'VIP Gold Permanente', 'VIP Black Mensal', 'VIP Black Permanente', 'VIP Personalizado'];
+
+function genId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+function getLocalStore(name) {
+  try { return JSON.parse(localStorage.getItem('admin_' + name) || '[]'); }
+  catch { return []; }
+}
+
+function saveLocalStore(name, data) {
+  localStorage.setItem('admin_' + name, JSON.stringify(data));
+}
+
+function mergeData(fileData, storeName) {
+  const local = getLocalStore(storeName);
+  const map = new Map();
+  for (const item of fileData) map.set(item.id, item);
+  for (const item of local) {
+    if (item._deleted) map.delete(item.id);
+    else map.set(item.id, item);
+  }
+  return Array.from(map.values());
+}
+
+function loadLocalJson(path) {
+  return new Promise(resolve => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', path, true);
+    xhr.onload = () => {
+      try { resolve(JSON.parse(xhr.responseText)); }
+      catch { resolve([]); }
+    };
+    xhr.onerror = () => resolve([]);
+    xhr.send();
+  });
+}
+
+async function loadJsonFile(path) {
+  try {
+    const r = await fetch(path);
+    if (r.ok) return await r.json();
+  } catch {}
+  try { return await loadLocalJson(path); } catch {}
+  return [];
+}
+
+async function loadStaticData() {
+  const [tickets, reports, purchases, vips, staff, users] = await Promise.all([
+    loadJsonFile('data/tickets.json'),
+    loadJsonFile('data/reports.json'),
+    loadJsonFile('data/purchases.json'),
+    loadJsonFile('data/vips.json'),
+    loadJsonFile('data/staff.json'),
+    loadJsonFile('data/users.json')
+  ]);
+  stores.tickets = mergeData(tickets, 'tickets');
+  stores.reports = mergeData(reports, 'reports');
+  stores.purchases = mergeData(purchases, 'purchases');
+  stores.vips = mergeData(vips, 'vips');
+  stores.staff = mergeData(staff, 'staff');
+  usersList = users;
+}
+
+async function authenticateUser(username, password) {
+  let users = await loadJsonFile('data/users.json');
+  if (!users.length) {
+    users = [
+      { username: 'admin', password: 'senha123', role: 'admin' },
+      { username: 'guilherme', password: 'staff123', role: 'staff' },
+      { username: 'moderador', password: 'senha456', role: 'admin' },
+      { username: 'joaozinho', password: '123456', role: 'admin' },
+      { username: 'suporte', password: 'senha789', role: 'support' },
+      { username: 'rafael', password: 'staff456', role: 'staff' }
+    ];
+  }
+  const user = users.find(u => u.username === username && u.password === password);
+  if (user) {
+    return { id: genId(), username: user.username, role: user.role, name: user.username };
+  }
+  return null;
+}
+
+if (STATIC_MODE) {
+  console.log('[Admin] Modo estático (GitHub Pages)');
+}
+
+function showToast(msg, type) {
+  const c = document.getElementById('toastContainer');
+  const el = document.createElement('div');
+  el.className = 'toast-item toast-' + type;
+  el.textContent = msg;
+  c.appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+}
+
+function api(path, opts) {
+  if (STATIC_MODE) return staticApi(path, opts);
+  const url = API + path + (path.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(TOKEN);
+  return fetch(url, {
+    ...opts,
+    headers: { 'Content-Type': 'application/json', ...(opts?.headers || {}) }
+  }).then(r => {
+    if (r.status === 401) { logout(); return null; }
+    return r.json();
+  }).catch(() => null);
+}
+
+function safeApi(path, opts) {
+  if (STATIC_MODE) return staticApi(path, opts);
+  const url = API + path + (path.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(TOKEN);
+  return fetch(url, {
+    ...opts,
+    headers: { 'Content-Type': 'application/json', ...(opts?.headers || {}) }
+  }).then(r => r.json()).catch(() => null);
+}
+
+async function staticApi(path, opts) {
+  if (path === '/api/auth/me') return USER;
+  if (path.startsWith('/api/admin/users')) return usersList;
+  const m = path.match(/^\/api\/admin\/(\w+)(?:\/(\w+))?/);
+  if (!m) return null;
+  const type = m[1];
+  const id = m[2];
+  if (!opts || opts.method === 'GET' || !opts.method) {
+    if (id) return stores[type]?.find(x => x.id === id) || null;
+    return stores[type] || [];
+  }
+  const method = opts.method;
+  const body = opts.body ? JSON.parse(opts.body) : {};
+  if (method === 'PATCH' && id) {
+    const idx = stores[type].findIndex(x => x.id === id);
+    if (idx >= 0) {
+      stores[type][idx] = { ...stores[type][idx], ...body, updatedAt: new Date().toISOString() };
+      saveLocalStore(type, stores[type]);
+    }
+    return stores[type][idx] || null;
+  }
+  if (method === 'POST' && !id) {
+    const entry = { ...body, id: genId(), createdAt: new Date().toISOString(), status: body.status || 'active' };
+    stores[type] = [entry, ...(stores[type] || [])];
+    saveLocalStore(type, stores[type]);
+    return { success: true, id: entry.id };
+  }
+  if (method === 'POST' && id && path.includes('/reply')) {
+    const text = body.text;
+    if (!text) return null;
+    const idx = stores[type].findIndex(x => x.id === id);
+    if (idx >= 0) {
+      if (!stores[type][idx].messages) {
+        stores[type][idx].messages = [{ text: stores[type][idx].message, role: 'user', name: stores[type][idx].name, createdAt: stores[type][idx].createdAt }];
+      }
+      const name = USER?.role === 'admin' || USER?.role === 'dono' ? 'Admin (' + (USER?.username || '') + ')' : 'Suporte (' + (USER?.username || '') + ')';
+      stores[type][idx].messages.push({ text, role: 'admin', name, createdAt: new Date().toISOString() });
+      stores[type][idx].updatedAt = new Date().toISOString();
+      saveLocalStore(type, stores[type]);
+    }
+    return stores[type][idx] || null;
+  }
+  if (method === 'DELETE' && id) {
+    if (type === 'users') {
+      usersList = usersList.filter(x => String(x.id) !== String(id) && String(x.username) !== String(id));
+      return { success: true };
+    }
+    const local = getLocalStore(type).filter(x => x.id !== id);
+    stores[type] = stores[type].filter(x => x.id !== id);
+    saveLocalStore(type, local);
+    return { success: true };
+  }
+  return null;
+}
+
+async function doLogin() {
+  const username = document.getElementById('loginUser').value.trim();
+  const password = document.getElementById('loginPass').value;
+  if (!username || !password) return;
+  const errDiv = document.getElementById('loginError');
+  errDiv.style.display = 'none';
+  const btn = document.querySelector('.login-box button[type=submit]');
+  btn.disabled = true;
+  btn.textContent = 'Entrando...';
+  try {
+    if (STATIC_MODE) {
+      const user = await authenticateUser(username, password);
+      if (!user) {
+        errDiv.textContent = 'Usuário ou senha inválidos';
+        errDiv.style.display = 'block';
+        return;
+      }
+      TOKEN = genId();
+      USER = user;
+      sessionStorage.setItem('adminToken', TOKEN);
+      sessionStorage.setItem('adminUser', JSON.stringify(USER));
+      await initApp();
+    } else {
+      const res = await fetch(API + '/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      let data;
+      try { data = await res.json(); } catch { data = {}; }
+      if (!res.ok || !data.token) {
+        errDiv.textContent = data.error || 'Usuário ou senha inválidos';
+        errDiv.style.display = 'block';
+        return;
+      }
+      TOKEN = data.token;
+      sessionStorage.setItem('adminToken', TOKEN);
+      await initApp();
+    }
+  } catch (e) {
+    errDiv.textContent = 'Erro de conexão.';
+    errDiv.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Entrar';
+  }
+}
+
+const params = new URLSearchParams(location.search);
+if (params.get('error') === '1') {
+  document.getElementById('loginError').style.display = 'block';
+}
+if (TOKEN && USER) initApp();
+else { sessionStorage.removeItem('adminToken'); sessionStorage.removeItem('adminUser'); }
+
+async function initApp() {
+  if (!TOKEN || !USER) {
+    sessionStorage.removeItem('adminToken');
+    sessionStorage.removeItem('adminUser');
+    return;
+  }
+  await loadStaticData();
+  const roleLabels = { dono:'Dono', admin:'Administrador', moderador:'Moderador', suporte:'Suporte', staff:'Staff' };
+  document.getElementById('userName').textContent = USER.name || USER.username;
+  document.getElementById('userRole').textContent = roleLabels[USER.role] || USER.role;
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  updateCounts();
+  switchTab('tickets');
+  if (refreshInterval) clearInterval(refreshInterval);
+  refreshInterval = setInterval(async () => {
+    await loadStaticData();
+    updateCounts();
+    renderTab(currentTab);
+  }, 15000);
+}
+
+function logout() {
+  TOKEN = '';
+  USER = null;
+  sessionStorage.removeItem('adminToken');
+  sessionStorage.removeItem('adminUser');
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginError').style.display = 'none';
+  if (refreshInterval) { clearInterval(refreshInterval); refreshInterval = null; }
+}
+
+async function loadAll() {
+  await loadStaticData();
+  updateCounts();
+}
+
+function refreshAndStay() {
+  const tab = (document.querySelector('[data-tab].active') || document.querySelector('[data-tab]'))?.getAttribute('data-tab') || 'tickets';
+  loadAll().then(() => switchTab(tab));
+}
+
+function updateCounts() {
+  document.getElementById('countTickets').textContent = stores.tickets.filter(t => t.status === 'pending').length;
+  document.getElementById('countReports').textContent = stores.reports.filter(r => r.status === 'pending').length;
+  document.getElementById('countPurchases').textContent = stores.purchases.length;
+  document.getElementById('countVips').textContent = stores.vips.filter(v => v.status === 'active').length;
+  document.getElementById('countStaff').textContent = stores.staff.length;
+  document.getElementById('countUsers').textContent = usersList.length;
+}
+
+function switchTab(tab) {
+  if (currentChatTicketId && currentTab === 'ticketChat' && tab === 'tickets' && !_allowSwitchFromChat) return;
+  if (currentReportChatId && currentTab === 'reportChat' && tab === 'reports' && !_allowSwitchFromReportChat) return;
+  currentTab = tab;
+  document.querySelectorAll('[data-tab]').forEach(b => b.classList.remove('active'));
+  const tabBtn = document.querySelector(`[data-tab="${tab}"]`);
+  if (tabBtn) tabBtn.classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  const el = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1));
+  if (el) el.classList.add('active');
+  if (tab === 'ticketChat') renderTicketChat();
+  else if (tab === 'reportChat') renderReportChat();
+  else renderTab(tab);
+}
+
+let _allowSwitchFromChat = false;
+
+function switchFromChat() {
+  _allowSwitchFromChat = true;
+  currentChatTicketId = null;
+  sessionStorage.removeItem('chatTicketId');
+  switchTab('tickets');
+}
+
+function renderTab(tab) {
+  if (tab === 'tickets') renderTickets();
+  else if (tab === 'reports') renderReports();
+  else if (tab === 'purchases') renderPurchases();
+  else if (tab === 'vips') renderVips();
+  else if (tab === 'staff') renderStaff();
+  else if (tab === 'users') renderUsers();
+}
+
+// ===== TICKETS =====
+function renderTickets() {
+  const list = stores.tickets;
+  const pending = list.filter(t => t.status === 'pending');
+  const c = document.getElementById('tabTickets');
+  c.innerHTML = `
+    <h1>🎫 Tickets</h1>
+    <div class="stats-row">
+      <div class="stat-pill"><div class="num">${list.length}</div><div class="label">Total</div></div>
+      <div class="stat-pill"><div class="num">${pending.length}</div><div class="label">Pendentes</div></div>
+    </div>
+    <div class="action-bar">
+      <input type="text" placeholder="Buscar..." id="ticketSearch" oninput="renderTickets()">
+      <select id="ticketFilter" onchange="renderTickets()" style="padding:8px 12px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:0.82rem;outline:none">
+        <option value="">Todos</option>
+        <option value="pending">Pendentes</option>
+        <option value="resolved">Resolvidos</option>
+        <option value="closed">Fechados</option>
+      </select>
+    </div>
+    <div class="table-wrap">${buildTicketTable(filterList(list, 'ticketSearch', 'ticketFilter'))}</div>`;
+}
+
+function buildTicketTable(list) {
+  if (!list.length) return '<div class="empty">Nenhum ticket encontrado</div>';
+  return `<table><thead><tr>
+    <th>ID</th><th>Nome</th><th>Assunto</th><th>Status</th><th>Data</th><th>Ações</th>
+  </tr></thead><tbody>${list.map(t => `
+    <tr>
+      <td style="color:#555;font-size:0.75rem">${'#' + (t.ticketNumber || t.id?.slice(0,8) || '—')}</td>
+      <td>${t.name || 'Anônimo'}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.subject || '—'}</td>
+      <td><span class="badge badge-${t.status}">${t.status}</span></td>
+      <td style="color:#888;font-size:0.75rem">${t.createdAt ? new Date(t.createdAt).toLocaleString('pt-BR') : '—'}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="openTicketChat('${t.id}')">Chat</button>
+          <button class="btn btn-danger btn-sm" onclick="showDeleteConfirm('${t.id}','tickets','ticket')">🗑️</button></td>
+    </tr>
+  `).join('')}</tbody></table>`;
+}
+
+// ===== INLINE TICKET CHAT =====
+function openTicketChat(id) {
+  currentChatTicketId = id;
+  _allowSwitchFromChat = false;
+  sessionStorage.setItem('chatTicketId', id);
+  switchTab('ticketChat');
+}
+
+function renderTicketChat() {
+  const id = currentChatTicketId;
+  if (!id) { switchTab('tickets'); return; }
+  sessionStorage.setItem('chatTicketId', id);
+  const t = stores.tickets.find(x => x.id === id);
+  if (!t) { switchTab('tickets'); return; }
+  const msgs = t.messages || [{ text: t.message, role: 'user', name: t.name, createdAt: t.createdAt }];
+  const c = document.getElementById('tabTicketChat');
+  const statusColor = t.status === 'pending' ? 'var(--warning)' : t.status === 'resolved' ? 'var(--neon-green)' : '#666';
+  c.innerHTML = `
+    <div class="chat-layout">
+      <div class="chat-header">
+        <button class="btn btn-ghost btn-sm" onclick="if(chatInterval){clearInterval(chatInterval);chatInterval=null;chatTicketId=null}switchFromChat()">← Voltar</button>
+        <h2>${'#' + (t.ticketNumber || t.id?.slice(0,6) || '?')} — ${t.subject || 'Sem assunto'}</h2>
+        <span class="badge badge-${t.status}" style="font-size:0.75rem">${t.status}</span>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-green btn-sm" onclick="updateTicketStatus('${id}','resolved')">✓ Resolver</button>
+          <button class="btn btn-ghost btn-sm" onclick="updateTicketStatus('${id}','closed')">Fechar</button>
+        </div>
+      </div>
+      <div class="chat-body" id="chatMessages"></div>
+      <div class="chat-input">
+        <textarea id="replyText" placeholder="Digite sua resposta..." rows="1" style="flex:1"></textarea>
+        <button class="btn btn-primary" id="sendBtn" style="align-self:flex-end">Enviar</button>
+      </div>
+    </div>`;
+  updateChatMessages(msgs);
+  startChatPolling(id);
+  setTimeout(() => {
+    const ta = document.getElementById('replyText');
+    const btn = document.getElementById('sendBtn');
+    if (!ta || !btn) return;
+    ta.onkeydown = function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doReply(id); return false; } };
+    btn.onclick = function(e) { e.preventDefault(); doReply(id); return false; };
+    ta.focus();
+  }, 0);
+}
+
+async function doReply(id) {
+  const ta = document.getElementById('replyText');
+  const btn = document.getElementById('sendBtn');
+  if (!ta || !btn) return;
+  const text = ta.value.trim();
+  if (!text) return;
+  sessionStorage.setItem('chatTicketId', id);
+  btn.disabled = true;
+  const name = USER?.role === 'admin' || USER?.role === 'dono' ? 'Admin (' + (USER?.username || '') + ')' : 'Suporte (' + (USER?.username || '') + ')';
+  const optimistic = { text, role: 'admin', name, createdAt: new Date().toISOString() };
+  const idx = stores.tickets.findIndex(x => x.id === id);
+  if (idx >= 0) {
+    if (!stores.tickets[idx].messages) stores.tickets[idx].messages = [{ text: stores.tickets[idx].message, role: 'user', name: stores.tickets[idx].name, createdAt: stores.tickets[idx].createdAt }];
+    stores.tickets[idx].messages.push(optimistic);
+    saveLocalStore('tickets', stores.tickets);
+    updateChatMessages(stores.tickets[idx].messages);
+  }
+  ta.value = '';
+  ta.style.height = 'auto';
+  btn.disabled = false;
+}
+
+function updateChatMessages(msgs) {
+  const el = document.getElementById('chatMessages');
+  if (!el) return;
+  const wasAtBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 40;
+  el.innerHTML = msgs.map(m => `
+    <div class="chat-msg${m.role === 'admin' ? ' admin' : ''}">
+      <div class="meta"><strong>${m.name || m.role}</strong><span class="time">${new Date(m.createdAt).toLocaleString('pt-BR')}</span></div>
+      <div class="text">${m.text}</div>
+    </div>
+  `).join('');
+  if (wasAtBottom || true) requestAnimationFrame(() => el.scrollTop = el.scrollHeight);
+}
+
+function startChatPolling(id) {
+  if (chatInterval) clearInterval(chatInterval);
+  chatTicketId = id;
+  chatInterval = setInterval(async () => {
+    if (currentChatTicketId === id) {
+      let t;
+      if (STATIC_MODE) {
+        const local = getLocalStore('tickets');
+        t = local.find(x => x.id === id);
+        if (t) {
+          const idx = stores.tickets.findIndex(x => x.id === id);
+          if (idx >= 0) stores.tickets[idx] = t;
+        }
+      } else {
+        t = await safeApi('/api/admin/tickets/' + id);
+        if (t && !t.error) {
+          const idx = stores.tickets.findIndex(x => x.id === id);
+          if (idx >= 0) stores.tickets[idx] = t;
+        }
+      }
+      if (t) {
+        const msgs = t.messages || [{ text: t.message, role: 'user', name: t.name, createdAt: t.createdAt }];
+        updateChatMessages(msgs);
+      }
+    } else {
+      clearInterval(chatInterval);
+      chatInterval = null;
+      chatTicketId = null;
+    }
+  }, 3000);
+}
+
+// ===== INLINE REPORT CHAT =====
+let currentReportChatId = null;
+let reportChatInterval = null;
+let _allowSwitchFromReportChat = false;
+let _reportChatWS = null;
+
+function renderEvidence(url) {
+  if (!url || url === '—') return '—';
+  return `<a href="${url}" target="_blank" style="color:var(--neon-green)">📎 ${url.split('/').pop()}</a>`;
+}
+
+function switchFromReportChat() {
+  _allowSwitchFromReportChat = true;
+  currentReportChatId = null;
+  sessionStorage.removeItem('reportChatId');
+  if (reportChatInterval) { clearInterval(reportChatInterval); reportChatInterval = null; }
+  switchTab('reports');
+}
+
+function openReportChat(id) {
+  currentReportChatId = id;
+  _allowSwitchFromReportChat = false;
+  sessionStorage.setItem('reportChatId', id);
+  switchTab('reportChat');
+}
+
+function renderReportChat() {
+  const id = currentReportChatId;
+  if (!id) { switchTab('reports'); return; }
+  const r = stores.reports.find(x => x.id === id);
+  if (!r) { switchTab('reports'); return; }
+  if (!r.messages || r.messages.length === 0) r.messages = [{ text: r.message || r.description || '', role: 'user', name: r.reporter || 'Usuário', createdAt: r.createdAt }];
+  const msgs = r.messages;
+  const c = document.getElementById('tabReportChat');
+  c.innerHTML = `
+    <div class="chat-layout">
+      <div class="chat-header">
+        <button class="btn btn-ghost btn-sm" onclick="switchFromReportChat()">← Voltar</button>
+        <h2>${r.reason || 'Sem motivo'}</h2>
+        <span class="badge badge-${r.status}" style="font-size:0.75rem">${r.status}</span>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-green btn-sm" onclick="resolveReport('${id}')">✓ Resolver</button>
+        </div>
+      </div>
+      <div class="chat-body" id="reportChatMessages"></div>
+      <div class="chat-input">
+        <textarea id="reportReplyText" placeholder="Digite sua resposta..." rows="1" style="flex:1"></textarea>
+        <button class="btn btn-primary" id="reportSendBtn" style="align-self:flex-end">Enviar</button>
+      </div>
+    </div>`;
+  updateReportChatMessages(msgs);
+  startReportChatPolling(id);
+  setTimeout(() => {
+    const ta = document.getElementById('reportReplyText');
+    const btn = document.getElementById('reportSendBtn');
+    if (!ta || !btn) return;
+    ta.onkeydown = function(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doReportReply(id); return false; } };
+    btn.onclick = function(e) { e.preventDefault(); doReportReply(id); return false; };
+    ta.focus();
+  }, 0);
+}
+
+async function doReportReply(id) {
+  const ta = document.getElementById('reportReplyText');
+  const btn = document.getElementById('reportSendBtn');
+  if (!ta || !btn) return;
+  const text = ta.value.trim();
+  if (!text) return;
+  sessionStorage.setItem('reportChatId', id);
+  btn.disabled = true;
+  const name = USER?.role === 'admin' || USER?.role === 'dono' ? 'Admin (' + (USER?.username || '') + ')' : 'Suporte (' + (USER?.username || '') + ')';
+  const optimistic = { text, role: 'admin', name, createdAt: new Date().toISOString() };
+  const idx = stores.reports.findIndex(x => x.id === id);
+  if (idx >= 0) {
+    if (!stores.reports[idx].messages || stores.reports[idx].messages.length === 0) stores.reports[idx].messages = [{ text: stores.reports[idx].message || stores.reports[idx].description || '', role: 'user', name: stores.reports[idx].reporter || 'Usuário', createdAt: stores.reports[idx].createdAt }];
+    stores.reports[idx].messages.push(optimistic);
+    saveLocalStore('reports', stores.reports);
+    updateReportChatMessages(stores.reports[idx].messages);
+  }
+  ta.value = '';
+  ta.style.height = 'auto';
+  btn.disabled = false;
+}
+
+function updateReportChatMessages(msgs) {
+  const el = document.getElementById('reportChatMessages');
+  if (!el) return;
+  const wasAtBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 40;
+  el.innerHTML = msgs.map(m => `
+    <div class="chat-msg${m.role === 'admin' ? ' admin' : ''}">
+      <div class="meta"><strong>${m.name || m.role}</strong><span class="time">${new Date(m.createdAt).toLocaleString('pt-BR')}</span></div>
+      <div class="text">${m.text}</div>
+    </div>
+  `).join('');
+  if (wasAtBottom || true) requestAnimationFrame(() => el.scrollTop = el.scrollHeight);
+}
+
+function startReportChatPolling(id) {
+  if (reportChatInterval) clearInterval(reportChatInterval);
+  reportChatInterval = setInterval(async () => {
+    if (currentReportChatId === id) {
+      let r;
+      if (STATIC_MODE) {
+        const local = getLocalStore('reports');
+        r = local.find(x => x.id === id);
+        if (r) {
+          const idx = stores.reports.findIndex(x => x.id === id);
+          if (idx >= 0) stores.reports[idx] = r;
+        }
+      } else {
+        r = await safeApi('/api/admin/reports/' + id);
+        if (r && !r.error) {
+          const idx = stores.reports.findIndex(x => x.id === id);
+          if (idx >= 0) stores.reports[idx] = r;
+        }
+      }
+      if (r) {
+        if (!r.messages || r.messages.length === 0) r.messages = [{ text: r.message || r.description || '', role: 'user', name: r.reporter || 'Usuário', createdAt: r.createdAt }];
+        updateReportChatMessages(r.messages);
+      }
+    } else {
+      clearInterval(reportChatInterval);
+      reportChatInterval = null;
+    }
+  }, 3000);
+}
+
+function updateTicketStatus(id, status) {
+  const idx = stores.tickets.findIndex(x => x.id === id);
+  if (idx < 0) return;
+  stores.tickets[idx].status = status;
+  stores.tickets[idx].updatedAt = new Date().toISOString();
+  saveLocalStore('tickets', stores.tickets);
+  updateCounts();
+  showToast('Ticket ' + status, 'success');
+  if (currentChatTicketId === id) switchFromChat();
+  else renderTickets();
+}
+
+let _deleteCtx = null;
+
+function showDeleteConfirm(id, type, label) {
+  _deleteCtx = { id, type, label };
+  document.getElementById('genericModalTitle').textContent = '🗑 Deletar ' + label;
+  document.getElementById('genericModalBody').innerHTML = `
+    <p style="margin-bottom:16px;font-size:0.9rem;color:var(--text-secondary)">Tem certeza que deseja deletar ${label === 'compra' ? 'esta' : 'este'} ${label}?</p>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('genericModal');_deleteCtx=null">Cancelar</button>
+      <button class="btn btn-sm" style="background:var(--danger)" onclick="confirmDelete()">Deletar</button>
+    </div>`;
+  document.getElementById('genericModal').classList.add('active');
+}
+
+function confirmDelete() {
+  const ctx = _deleteCtx;
+  _deleteCtx = null;
+  if (!ctx) return;
+  const { id, type, label } = ctx;
+  if (STATIC_MODE) {
+    if (type === 'users') {
+      usersList = usersList.filter(x => String(x.id) !== String(id) && String(x.username) !== String(id));
+    } else {
+      stores[type] = stores[type].filter(x => x.id !== id);
+      saveLocalStore(type, stores[type]);
+    }
+    closeModal('genericModal');
+    const suffix = label === 'compra' ? 'a' : '';
+    showToast(label + ' deletad' + suffix + ' com sucesso', 'success');
+    refreshAndStay();
+  } else {
+    api('/api/admin/' + type + '/' + id, { method: 'DELETE' }).then(data => {
+      if (data) {
+        closeModal('genericModal');
+        const suffix = label === 'compra' ? 'a' : '';
+        showToast(label + ' deletad' + suffix + ' com sucesso', 'success');
+        refreshAndStay();
+      } else {
+        showToast('Erro ao deletar ' + label, 'error');
+      }
+    });
+  }
+}
+
+// ===== REPORTS =====
+function renderReports() {
+  const list = stores.reports;
+  const c = document.getElementById('tabReports');
+  c.innerHTML = `
+    <h1>📢 Denúncias</h1>
+    <div class="stats-row">
+      <div class="stat-pill"><div class="num">${list.length}</div><div class="label">Total</div></div>
+      <div class="stat-pill"><div class="num">${list.filter(r => r.status === 'pending').length}</div><div class="label">Pendentes</div></div>
+    </div>
+    <div class="action-bar">
+      <input type="text" placeholder="Buscar..." id="reportSearch" oninput="renderReports()">
+      <select id="reportFilter" onchange="renderReports()" style="padding:8px 12px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:0.82rem;outline:none">
+        <option value="">Todos</option>
+        <option value="pending">Pendentes</option>
+        <option value="resolved">Resolvidos</option>
+      </select>
+    </div>
+    <div class="table-wrap">${list.length === 0 ? '<div class="empty">Nenhuma denúncia</div>' : `
+    <table><thead><tr>
+      <th>ID</th><th>Denunciante</th><th>Denunciado</th><th>Motivo</th><th>Descrição</th><th>Status</th><th>Data</th><th>Ações</th>
+    </tr></thead><tbody>${filterList(list, 'reportSearch', 'reportFilter').map(r => `
+      <tr>
+        <td style="color:#555;font-size:0.75rem">${r.id?.slice(0,8) || '—'}</td>
+        <td>${r.reporter || '—'}</td>
+        <td>${r.player || r.reported || '—'}</td>
+        <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.reason || '—'}</td>
+        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.description || r.message || '—'}</td>
+        <td><span class="badge badge-${r.status}">${r.status}</span></td>
+        <td style="color:#888;font-size:0.75rem">${r.createdAt ? new Date(r.createdAt).toLocaleString('pt-BR') : '—'}</td>
+        <td>
+          <button class="btn btn-green btn-sm" onclick="resolveReport('${r.id}')">✓ Resolver</button>
+          <button class="btn btn-ghost btn-sm" onclick="openReportChat('${r.id}')">Chat</button>
+          <button class="btn btn-ghost btn-sm" onclick="showReportDetail('${r.id}')">Detalhes</button>
+          <button class="btn btn-danger btn-sm" onclick="showDeleteConfirm('${r.id}','reports','denúncia')">🗑️</button>
+        </td>
+      </tr>
+    `).join('')}</tbody></table>`}`;
+}
+
+function showReportDetail(id) {
+  const r = stores.reports.find(x => x.id === id);
+  if (!r) return;
+  document.getElementById('genericModalTitle').textContent = '📢 Denúncia';
+  document.getElementById('genericModalBody').innerHTML = `
+    <div style="line-height:1.8;font-size:0.85rem">
+      <div><strong>Denunciante:</strong> ${r.reporter || '—'}</div>
+      <div><strong>Denunciado:</strong> ${r.player || r.reported || '—'}</div>
+      <div><strong>Motivo:</strong> ${r.reason || '—'}</div>
+      <div><strong>Descrição:</strong> ${r.description || r.message || '—'}</div>
+      <div><strong>Provas:</strong> ${renderEvidence(r.evidence)}</div>
+      <div><strong>Data:</strong> ${r.createdAt ? new Date(r.createdAt).toLocaleString('pt-BR') : '—'}</div>
+      <div><strong>Status:</strong> <span class="badge badge-${r.status}">${r.status}</span></div>
+    </div>`;
+  document.getElementById('genericModal').classList.add('active');
+}
+
+function resolveReport(id) {
+  const idx = stores.reports.findIndex(x => x.id === id);
+  if (idx >= 0) {
+    stores.reports[idx].status = 'resolved';
+    stores.reports[idx].updatedAt = new Date().toISOString();
+    saveLocalStore('reports', stores.reports);
+  }
+  updateCounts();
+  showToast('Denúncia resolvida', 'success');
+  if (currentReportChatId === id) switchFromReportChat();
+  else renderReports();
+}
+
+// ===== PURCHASES =====
+function renderPurchases() {
+  const list = stores.purchases;
+  const c = document.getElementById('tabPurchases');
+  c.innerHTML = `
+    <h1>🛒 Compras</h1>
+    <div class="stats-row">
+      <div class="stat-pill"><div class="num">${list.length}</div><div class="label">Total</div></div>
+      <div class="stat-pill"><div class="num">${list.filter(p => p.status === 'pending').length}</div><div class="label">Pendentes</div></div>
+    </div>
+    <div class="action-bar">
+      <input type="text" placeholder="Buscar..." id="purchaseSearch" oninput="renderPurchases()">
+    </div>
+    <div class="table-wrap">${list.length === 0 ? '<div class="empty">Nenhuma compra</div>' : `
+    <table><thead><tr>
+      <th>ID</th><th>Cliente</th><th>Item</th><th>Valor</th><th>Status</th><th>Data</th><th>Ações</th>
+    </tr></thead><tbody>${filterList(list, 'purchaseSearch').map(p => `
+      <tr>
+        <td style="color:#555;font-size:0.75rem">${p.id?.slice(0,8) || '—'}</td>
+        <td>${p.name || p.buyer || '—'}</td>
+        <td>${p.item || p.product || '—'}</td>
+        <td>${p.value || p.price || '—'}</td>
+        <td><span class="badge badge-${p.status || 'pending'}">${p.status || 'pending'}</span></td>
+        <td style="color:#888;font-size:0.75rem">${p.createdAt ? new Date(p.createdAt).toLocaleString('pt-BR') : '—'}</td>
+        <td>
+          <button class="btn btn-green btn-sm" onclick="confirmPurchase('${p.id}')">✓ Confirmar</button>
+          <button class="btn btn-ghost btn-sm" onclick="showPurchaseDetail('${p.id}')">Detalhes</button>
+          <button class="btn btn-sm" style="background:var(--danger)" onclick="showDeleteConfirm('${p.id}','purchases','compra')">🗑 Deletar</button>
+        </td>
+      </tr>
+    `).join('')}</tbody></table>`}`;
+}
+
+function showPurchaseDetail(id) {
+  const p = stores.purchases.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('genericModalTitle').textContent = '🛒 Detalhes da Compra';
+  document.getElementById('genericModalBody').innerHTML = `
+    <div style="line-height:1.8;font-size:0.85rem">
+      <div><strong>ID:</strong> ${p.id}</div>
+      <div><strong>Cliente:</strong> ${p.name || p.buyer || '—'}</div>
+      <div><strong>Discord:</strong> ${p.discordId || '—'}</div>
+      <div><strong>Item:</strong> ${p.item || p.product || '—'}</div>
+      <div><strong>Valor:</strong> ${p.value || p.price || '—'}</div>
+      <div><strong>Método:</strong> ${p.method || '—'}</div>
+      <div><strong>Comprovante:</strong> ${p.receipt ? '<a href="' + p.receipt + '" target="_blank" style="color:var(--neon-green)">Ver</a>' : '—'}</div>
+      <div><strong>Data:</strong> ${p.createdAt ? new Date(p.createdAt).toLocaleString('pt-BR') : '—'}</div>
+      <div><strong>Status:</strong> <span class="badge badge-${p.status || 'pending'}">${p.status || 'pending'}</span></div>
+    </div>`;
+  document.getElementById('genericModal').classList.add('active');
+}
+
+function confirmPurchase(id) {
+  const idx = stores.purchases.findIndex(x => x.id === id);
+  if (idx >= 0) {
+    stores.purchases[idx].status = 'confirmed';
+    stores.purchases[idx].updatedAt = new Date().toISOString();
+    saveLocalStore('purchases', stores.purchases);
+  }
+  renderPurchases();
+  showToast('Compra confirmada', 'success');
+}
+
+// ===== VIPS =====
+function renderVips() {
+  const list = stores.vips;
+  const active = list.filter(v => v.status === 'active');
+  const now = Date.now();
+  const dayMs = 86400000;
+  const expiringSoon = active.filter(v => {
+    const diff = new Date(v.expiresAt).getTime() - now;
+    return diff > 0 && diff <= 7 * dayMs;
+  });
+  const expiringCritical = expiringSoon.filter(v => {
+    const diff = new Date(v.expiresAt).getTime() - now;
+    return diff <= 3 * dayMs;
+  });
+  const c = document.getElementById('tabVips');
+  c.innerHTML = `
+    <h1>⭐ VIPs</h1>
+    ${expiringSoon.length ? '<div class="alert-banner"><span class="icon">⏳</span><div class="msg"><strong>' + expiringSoon.length + ' VIP' + (expiringSoon.length > 1 ? 's' : '') + ' expir' + (expiringSoon.length > 1 ? 'am' : 'e') + ' em breve!</strong> ' + expiringCritical.length + ' crítico' + (expiringCritical.length > 1 ? 's' : '') + ' — menos de 3 dias</div></div>' : ''}
+    <div class="stats-row">
+      <div class="stat-pill"><div class="num">${list.length}</div><div class="label">Total</div></div>
+      <div class="stat-pill"><div class="num">${active.length}</div><div class="label">Ativos</div></div>
+      <div class="stat-pill ${expiringSoon.length ? 'stat-pill-warning' : ''}"><div class="num">${expiringSoon.length}</div><div class="label">Expirando</div></div>
+    </div>
+    <div class="action-bar">
+      <input type="text" placeholder="Buscar..." id="vipSearch" oninput="renderVips()">
+      <button class="btn btn-primary" onclick="showAddVip()">+ Novo VIP</button>
+    </div>
+    <div class="table-wrap">${list.length === 0 ? '<div class="empty">Nenhum VIP</div>' : `
+    <table><thead><tr>
+      <th>ID</th><th>Nome</th><th>Plano</th><th>Expira</th><th>Restam</th><th>Status</th><th>Ações</th>
+    </tr></thead><tbody>${list.map(v => {
+      const expDate = new Date(v.expiresAt).getTime();
+      const diff = expDate - now;
+      const dl = v.status === 'active'
+        ? diff > 0 ? { text: Math.ceil(diff / dayMs) + 'd', cls: diff <= 3 * dayMs ? 'badge-danger' : diff <= 7 * dayMs ? 'badge-warning' : '' } : { text: 'Expirado', cls: '' }
+        : { text: v.status, cls: '' };
+      const dateColor = v.status === 'active' && diff > 0 && diff <= 3 * dayMs ? 'var(--danger)' : diff <= 7 * dayMs ? 'var(--warning)' : '';
+      return `
+      <tr${v.status === 'active' && diff > 0 && diff <= 7 * dayMs ? ' class="expiring"' : ''}>
+        <td style="color:#555;font-size:0.75rem">${v.id?.slice(0,8) || '—'}</td>
+        <td>${v.name}</td>
+        <td>${v.plan || 'VIP'}</td>
+        <td style="color:${dateColor};font-size:0.75rem">${new Date(v.expiresAt).toLocaleDateString('pt-BR')}</td>
+        <td>${dl.cls ? `<span class="badge ${dl.cls}">${dl.text}</span>` : `<span style="color:#555;font-size:0.75rem">${dl.text}</span>`}</td>
+        <td><span class="badge badge-${v.status}">${v.status}</span></td>
+        <td>
+          <button class="btn btn-ghost btn-sm" onclick="editVip('${v.id}')">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="showDeleteConfirm('${v.id}','vips','VIP')">🗑️</button>
+        </td>
+      </tr>`;
+    }).join('')}</tbody></table>`}`;
+}
+
+function showAddVip() {
+  document.getElementById('genericModalTitle').textContent = '⭐ Novo VIP';
+  document.getElementById('genericModalBody').innerHTML = `
+    <div id="vipForm">
+      <input type="text" id="vipName" placeholder="Nome do jogador" style="width:100%;padding:8px 12px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:0.85rem;outline:none;margin-bottom:8px">
+      <select id="vipPlan" style="width:100%;padding:8px 12px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:0.85rem;outline:none;margin-bottom:8px">${VIP_PLANS.map(p => '<option value="' + p + '">' + p + '</option>').join('')}</select>
+      <input type="date" id="vipExpires" placeholder="Data de expiração" style="width:100%;padding:8px 12px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:0.85rem;outline:none;margin-bottom:12px;color-scheme:dark">
+      <button class="btn btn-primary" onclick="saveVip()">Salvar VIP</button>
+    </div>`;
+  document.getElementById('genericModal').classList.add('active');
+}
+
+function saveVip() {
+  const name = document.getElementById('vipName').value.trim();
+  const plan = document.getElementById('vipPlan').value;
+  const expiresAt = document.getElementById('vipExpires').value;
+  if (!name || !expiresAt) { showToast('Preencha nome e data', 'error'); return; }
+  const entry = { id: genId(), name, plan, status: 'active', expiresAt: new Date(expiresAt + 'T23:59:59').toISOString(), createdAt: new Date().toISOString() };
+  stores.vips = [entry, ...stores.vips];
+  saveLocalStore('vips', stores.vips);
+  closeModal('genericModal');
+  refreshAndStay();
+  showToast('VIP adicionado', 'success');
+}
+
+function editVip(id) {
+  const v = stores.vips.find(x => x.id === id);
+  if (!v) return;
+  document.getElementById('genericModalTitle').textContent = '⭐ Editar VIP';
+  const expDate = v.expiresAt ? v.expiresAt.split('T')[0] : '';
+  document.getElementById('genericModalBody').innerHTML = `
+    <div id="vipForm">
+      <input type="text" id="vipName" value="${v.name}" style="width:100%;padding:8px 12px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:0.85rem;outline:none;margin-bottom:8px">
+      <select id="vipPlan" style="width:100%;padding:8px 12px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:0.85rem;outline:none;margin-bottom:8px">${VIP_PLANS.map(p => '<option value="' + p + '"' + (v.plan === p ? ' selected' : '') + '>' + p + '</option>').join('')}</select>
+      <input type="date" id="vipExpires" value="${expDate}" style="width:100%;padding:8px 12px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:0.85rem;outline:none;margin-bottom:12px;color-scheme:dark">
+      <button class="btn btn-primary" onclick="updateVip('${id}')">Salvar</button>
+    </div>`;
+  document.getElementById('genericModal').classList.add('active');
+}
+
+function updateVip(id) {
+  const name = document.getElementById('vipName').value.trim();
+  const plan = document.getElementById('vipPlan').value;
+  const expiresAt = document.getElementById('vipExpires').value;
+  if (!name || !expiresAt) { showToast('Preencha nome e data', 'error'); return; }
+  const idx = stores.vips.findIndex(x => x.id === id);
+  if (idx >= 0) {
+    stores.vips[idx] = { ...stores.vips[idx], name, plan, status: 'active', expiresAt: new Date(expiresAt + 'T23:59:59').toISOString(), updatedAt: new Date().toISOString() };
+    saveLocalStore('vips', stores.vips);
+  }
+  closeModal('genericModal');
+  refreshAndStay();
+  showToast('VIP atualizado', 'success');
+}
+
+// ===== STAFF =====
+function renderStaff() {
+  const list = stores.staff;
+  const c = document.getElementById('tabStaff');
+  c.innerHTML = `
+    <h1>👥 Staff</h1>
+    <div class="stats-row">
+      <div class="stat-pill"><div class="num">${list.length}</div><div class="label">Total</div></div>
+      <div class="stat-pill"><div class="num">${list.filter(s => s.status === 'online').length}</div><div class="label">Online</div></div>
+    </div>
+    <div class="action-bar">
+      <input type="text" placeholder="Buscar..." id="staffSearch" oninput="renderStaff()">
+      <button class="btn btn-primary" onclick="showAddStaff()">+ Novo Membro</button>
+    </div>
+    <div class="table-wrap">${list.length === 0 ? '<div class="empty">Nenhum membro da staff</div>' : `
+    <table><thead><tr>
+      <th>ID</th><th>Nome</th><th>Cargo</th><th>Status</th><th>Usuário</th><th>Discord</th><th>Ações</th>
+    </tr></thead><tbody>${filterList(list, 'staffSearch').map(s => `
+      <tr>
+        <td style="color:var(--neon-green);font-weight:700;font-family:monospace">${s.userId ? '#' + s.userId : s.id?.slice(0,8) || '—'}</td>
+        <td>${s.name}</td>
+        <td>${s.role}</td>
+        <td><span class="badge badge-${s.status === 'online' ? 'active' : 'closed'}" style="cursor:pointer" onclick="toggleMyStaffStatus('${s.status || 'offline'}')">${s.status || 'offline'}</span></td>
+        <td style="color:#888;font-size:0.75rem">${s.userId ? '#' + s.userId : '—'}</td>
+        <td style="color:#888;font-size:0.75rem">${s.discordId || '—'}</td>
+        <td>
+          <button class="btn btn-ghost btn-sm" onclick="editStaff('${s.id}')">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="showDeleteConfirm('${s.id}','staff','membro da staff')">🗑️</button>
+        </td>
+      </tr>
+    `).join('')}</tbody></table>`}`;
+}
+
+function showAddStaff() {
+  document.getElementById('genericModalTitle').textContent = '👥 Novo Membro';
+  document.getElementById('genericModalBody').innerHTML = `
+    <div id="staffForm">
+      <input type="text" id="staffName" placeholder="Nome" style="width:100%;padding:8px 12px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:0.85rem;outline:none;margin-bottom:8px">
+      <select id="staffRole" style="width:100%;padding:8px 12px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:0.85rem;outline:none;margin-bottom:8px">
+        <option value="staff">Staff</option>
+        <option value="suporte">Suporte</option>
+        <option value="moderador">Moderador</option>
+        <option value="admin">Admin</option>
+      </select>
+      <input type="text" id="staffDiscord" placeholder="Discord ID" style="width:100%;padding:8px 12px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:0.85rem;outline:none;margin-bottom:8px">
+      <input type="number" id="staffUserId" placeholder="ID do Usuário (da aba Usuários)" style="width:100%;padding:8px 12px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:0.85rem;outline:none;margin-bottom:12px">
+      <button class="btn btn-primary" onclick="saveStaff()">Salvar</button>
+    </div>`;
+  document.getElementById('genericModal').classList.add('active');
+}
+
+function saveStaff() {
+  const name = document.getElementById('staffName').value.trim();
+  const role = document.getElementById('staffRole').value;
+  const discordId = document.getElementById('staffDiscord').value.trim();
+  const userId = document.getElementById('staffUserId').value.trim();
+  if (!name) { showToast('Preencha o nome', 'error'); return; }
+  const entry = { id: genId(), name, role, discordId: discordId || '', userId: userId ? Number(userId) : null, status: 'offline', createdAt: new Date().toISOString() };
+  stores.staff = [entry, ...stores.staff];
+  saveLocalStore('staff', stores.staff);
+  closeModal('genericModal');
+  refreshAndStay();
+  showToast('Membro adicionado', 'success');
+}
+
+function editStaff(id) {
+  const s = stores.staff.find(x => x.id === id);
+  if (!s) return;
+  document.getElementById('genericModalTitle').textContent = '👥 Editar Membro';
+  document.getElementById('genericModalBody').innerHTML = `
+    <div id="staffForm">
+      <input type="text" id="staffName" value="${s.name}" style="width:100%;padding:8px 12px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:0.85rem;outline:none;margin-bottom:8px">
+      <select id="staffRole" style="width:100%;padding:8px 12px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:0.85rem;outline:none;margin-bottom:8px">
+        <option value="staff"${s.role === 'staff' ? ' selected' : ''}>Staff</option>
+        <option value="suporte"${s.role === 'suporte' ? ' selected' : ''}>Suporte</option>
+        <option value="moderador"${s.role === 'moderador' ? ' selected' : ''}>Moderador</option>
+        <option value="admin"${s.role === 'admin' ? ' selected' : ''}>Admin</option>
+      </select>
+      <input type="text" id="staffDiscord" value="${s.discordId || ''}" placeholder="Discord ID" style="width:100%;padding:8px 12px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:0.85rem;outline:none;margin-bottom:8px">
+      <input type="number" id="staffUserId" value="${s.userId || ''}" placeholder="ID do Usuário (da aba Usuários)" style="width:100%;padding:8px 12px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:0.85rem;outline:none;margin-bottom:12px">
+      <button class="btn btn-primary" onclick="updateStaff('${id}')">Salvar</button>
+    </div>`;
+  document.getElementById('genericModal').classList.add('active');
+}
+
+function updateStaff(id) {
+  const name = document.getElementById('staffName').value.trim();
+  const role = document.getElementById('staffRole').value;
+  const discordId = document.getElementById('staffDiscord').value.trim();
+  const userId = document.getElementById('staffUserId').value.trim();
+  if (!name) { showToast('Preencha o nome', 'error'); return; }
+  const idx = stores.staff.findIndex(x => x.id === id);
+  if (idx >= 0) {
+    stores.staff[idx] = { ...stores.staff[idx], name, role, discordId: discordId || '', userId: userId ? Number(userId) : null, updatedAt: new Date().toISOString() };
+    saveLocalStore('staff', stores.staff);
+  }
+  closeModal('genericModal');
+  refreshAndStay();
+  showToast('Membro atualizado', 'success');
+}
+
+function toggleMyStaffStatus(current) {
+  showToast('Status offline/online disponível apenas com servidor ativo', 'warning');
+}
+
+// ===== USERS =====
+function renderUsers() {
+  const list = usersList;
+  const canEdit = USER?.role === 'admin' || USER?.role === 'dono';
+  const roleLabels = { dono:'Dono', admin:'Administrador', moderador:'Moderador', suporte:'Suporte', staff:'Staff', user:'Usuário' };
+  const statusBadge = { active:'badge-active', suspended:'badge-warning', banned:'', deleted:'' };
+  const c = document.getElementById('tabUsers');
+  c.innerHTML = `
+    <h1>👤 Usuários</h1>
+    <div class="stats-row">
+      <div class="stat-pill"><div class="num">${list.length}</div><div class="label">Total</div></div>
+    </div>
+    <div class="action-bar">
+      <input type="text" placeholder="Buscar..." id="userSearch" oninput="renderUsers()">
+      ${canEdit ? '<button class="btn btn-primary" onclick="showAddUser()">+ Novo Usuário</button>' : ''}
+    </div>
+    <div class="table-wrap">${list.length === 0 ? '<div class="empty">Nenhum usuário</div>' : `
+    <table><thead><tr>
+      <th>ID</th><th>Nome</th><th>Usuário</th><th>Cargo</th><th>Status</th><th>Data</th>${canEdit ? '<th>Ações</th>' : ''}
+    </tr></thead><tbody>${list.map(u => `
+      <tr>
+        <td style="color:#555;font-size:0.75rem">#${u.id}</td>
+        <td>${u.name || '—'}</td>
+        <td>${u.username}</td>
+        <td>${roleLabels[u.role] || u.role}</td>
+        <td><span class="badge ${statusBadge[u.status] || ''}" style="${u.status === 'banned' ? 'background:rgba(255,68,68,0.12);color:var(--danger)' : u.status === 'active' ? 'background:rgba(0,255,136,0.12);color:var(--neon-green)' : u.status === 'suspended' ? 'background:rgba(255,170,0,0.12);color:var(--warning)' : 'background:rgba(255,255,255,0.06);color:#666'}">${u.status || 'active'}</span></td>
+        <td style="color:#888;font-size:0.75rem">${u.created_at ? new Date(u.created_at + 'Z').toLocaleDateString('pt-BR') : '—'}</td>
+        ${canEdit ? `<td>
+          <button class="btn btn-ghost btn-sm" onclick="editUser(${u.id})">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="showDeleteConfirm(${u.id},'users','usuário')">🗑️</button>
+        </td>` : ''}
+      </tr>
+    `).join('')}</tbody></table>`}`;
+}
+
+function showAddUser() {
+  document.getElementById('genericModalTitle').textContent = '👤 Novo Usuário';
+  document.getElementById('genericModalBody').innerHTML = `
+    <div id="userForm">
+      <input type="text" id="newUserName" placeholder="Nome" style="width:100%;padding:8px 12px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:0.85rem;outline:none;margin-bottom:8px">
+      <input type="text" id="newUserUsername" placeholder="Usuário" style="width:100%;padding:8px 12px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:0.85rem;outline:none;margin-bottom:8px">
+      <input type="password" id="newUserPass" placeholder="Senha" style="width:100%;padding:8px 12px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:0.85rem;outline:none;margin-bottom:8px">
+      <select id="newUserRole" style="width:100%;padding:8px 12px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:0.85rem;outline:none;margin-bottom:12px">
+        <option value="user">Usuário</option>
+        <option value="staff">Staff</option>
+        <option value="suporte">Suporte</option>
+        <option value="moderador">Moderador</option>
+        <option value="admin">Admin</option>
+      </select>
+      <button class="btn btn-primary" onclick="saveUser()">Criar Usuário</button>
+    </div>`;
+  document.getElementById('genericModal').classList.add('active');
+}
+
+function saveUser() {
+  const name = document.getElementById('newUserName').value.trim();
+  const username = document.getElementById('newUserUsername').value.trim();
+  const password = document.getElementById('newUserPass').value;
+  const role = document.getElementById('newUserRole').value;
+  if (!username || !password) { showToast('Preencha usuário e senha', 'error'); return; }
+  if (usersList.some(u => u.username === username)) { showToast('Usuário já existe', 'error'); return; }
+  const entry = { id: usersList.length + 1, name: name || username, username, password, role, status: 'active', created_at: new Date().toISOString() };
+  usersList.push(entry);
+  closeModal('genericModal');
+  refreshAndStay();
+  showToast('Usuário criado', 'success');
+}
+
+function editUser(id) {
+  const u = usersList.find(x => x.id === id);
+  if (!u) return;
+  document.getElementById('genericModalTitle').textContent = '✏️ Editando: ' + (u.name || u.username);
+  document.getElementById('genericModalBody').innerHTML = `
+    <div id="userForm">
+      <input type="text" id="editUserName" value="${u.name || ''}" placeholder="Nome" style="width:100%;padding:8px 12px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:0.85rem;outline:none;margin-bottom:8px">
+      <input type="password" id="editUserPass" placeholder="Nova senha (deixe vazio para manter)" style="width:100%;padding:8px 12px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:0.85rem;outline:none;margin-bottom:8px">
+      <select id="editUserRole" style="width:100%;padding:8px 12px;background:rgba(0,0,0,0.4);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:var(--font);font-size:0.85rem;outline:none;margin-bottom:12px">
+        <option value="user"${u.role === 'user' ? ' selected' : ''}>Usuário</option>
+        <option value="staff"${u.role === 'staff' ? ' selected' : ''}>Staff</option>
+        <option value="suporte"${u.role === 'suporte' ? ' selected' : ''}>Suporte</option>
+        <option value="moderador"${u.role === 'moderador' ? ' selected' : ''}>Moderador</option>
+        <option value="admin"${u.role === 'admin' ? ' selected' : ''}>Admin</option>
+      </select>
+      <button class="btn btn-primary" onclick="updateUser(${id})">Salvar</button>
+    </div>`;
+  document.getElementById('genericModal').classList.add('active');
+}
+
+function updateUser(id) {
+  const name = document.getElementById('editUserName').value.trim();
+  const password = document.getElementById('editUserPass').value;
+  const role = document.getElementById('editUserRole').value;
+  const idx = usersList.findIndex(x => x.id === id);
+  if (idx >= 0) {
+    usersList[idx].name = name || usersList[idx].name;
+    usersList[idx].role = role;
+    if (password) usersList[idx].password = password;
+  }
+  closeModal('genericModal');
+  refreshAndStay();
+  showToast('Usuário atualizado', 'success');
+}
+
+// ===== HELPERS =====
+function filterList(list, searchId, filterId) {
+  const search = document.getElementById(searchId)?.value?.toLowerCase() || '';
+  const filter = filterId ? (document.getElementById(filterId)?.value || '') : '';
+  return list.filter(item => {
+    if (filter && item.status !== filter) return false;
+    if (search) {
+      const vals = Object.values(item).filter(v => typeof v === 'string').join(' ').toLowerCase();
+      if (!vals.includes(search)) return false;
+    }
+    return true;
+  });
+}
+</script>
+</body>
+</html>

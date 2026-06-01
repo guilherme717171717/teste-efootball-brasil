@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>eFootball Brasil — Plataforma VIP</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="assets/favicon.png">
+  <link rel="apple-touch-icon" href="assets/logo.png">
+</head>
+<body>
+
+  <div id="vipAlert" style="display:none;background:linear-gradient(135deg,rgba(255,170,0,0.12),rgba(255,170,0,0.04));border-bottom:1px solid rgba(255,170,0,0.15);padding:10px 24px;text-align:center;font-size:0.85rem;color:var(--warning);"></div>
+
+  <!-- ===== PARTICLES BG ===== -->
+  <canvas id="particlesCanvas"></canvas>
+
+  <!-- ===== NAVBAR ===== -->
+  <nav class="navbar" id="navbar">
+    <a href="#" class="navbar-brand" id="logoSecret">
+      <img src="assets/logo.png" alt="eFootball Brasil" class="logo-icon">
+      eFootball Brasil
+    </a>
+
+    <ul class="navbar-links" id="navLinks">
+      <li><a href="#home" class="active">Início</a></li>
+      <li><a href="#suporte">Suporte</a></li>
+      <li><a href="#denuncias">Denúncias</a></li>
+      <li><a href="#vip">Loja VIP</a></li>
+    </ul>
+
+    <div class="navbar-actions">
+      <div class="user-menu" id="userMenu" onclick="toggleDropdown(event)">
+        <span class="user-name" id="userName">Usuário</span>
+        <div class="user-avatar" id="userAvatar">U</div>
+        <div class="user-dropdown" id="userDropdown">
+          <div class="dropdown-header" id="dropdownHeader">
+            <div class="dropdown-avatar" id="dropdownAvatar">U</div>
+            <div>
+              <div class="dropdown-name" id="dropdownName">Usuário</div>
+              <div class="dropdown-id" id="dropdownId">#0000</div>
+            </div>
+          </div>
+          <a class="dropdown-item" href="admin.html" id="supportLink">🎫 Central de Suporte</a>
+          <hr class="dropdown-divider">
+          <button class="dropdown-item logout-item" onclick="logout()">🚪 Sair</button>
+        </div>
+      </div>
+      <button class="btn btn-discord btn-sm login-btn" id="loginBtn" onclick="loginDiscord()">
+        <span>🔗</span> <span>Entrar com Discord</span>
+      </button>
+      <button class="navbar-toggle" id="navToggle">☰</button>
+    </div>
+  </nav>
+
+  <!-- ===== HERO ===== -->
+  <section class="hero" id="home">
+    <div class="hero-image">
+      <div class="hero-image-bg">
+        <div class="hero-bg-orb orb-1"></div>
+        <div class="hero-bg-orb orb-2"></div>
+        <div class="hero-bg-orb orb-3"></div>
+        <div class="hero-bg-orb orb-4"></div>
+        <div class="hero-bg-particle p1"></div>
+        <div class="hero-bg-particle p2"></div>
+        <div class="hero-bg-particle p3"></div>
+        <div class="hero-bg-particle p4"></div>
+        <div class="hero-bg-particle p5"></div>
+        <div class="hero-bg-particle p6"></div>
+        <div class="hero-bg-particle p7"></div>
+        <div class="hero-bg-particle p8"></div>
+      </div>
+      <img src="assets/neymar-hero.png" alt="Neymar Jr. - Seleção Brasileira">
+    </div>
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="dot"></span>
+        Servidor Online · <span id="onlineCount" data-target="1282">1.282</span> jogadores
+      </div>
+
+      <h1 class="hero-title">
+        O melhor servidor de<br><span class="highlight">eFootball</span> do Brasil
+      </h1>
+
+      <p class="hero-subtitle">
+        O melhor servidor de eFootball do Brasil. Participe de torneios,
+        compre itens VIP e jogue com os melhores.
+      </p>
+
+      <div class="hero-actions">
+        <a href="#vip" class="btn btn-primary btn-lg">🎮 Ver Planos VIP</a>
+        <a href="#suporte" class="btn btn-outline btn-lg">💬 Fale Conosco</a>
+      </div>
+
+      <div class="hero-stats reveal">
+        <div class="hero-stat">
+          <span class="number live-number" id="onlineCountDisplay" data-target="1282">0</span>
+          <span class="label">Jogadores Online</span>
+        </div>
+        <div class="hero-stat-divider"></div>
+        <div class="hero-stat">
+          <span class="number live-number" id="memberCountDisplay" data-target="32277">0</span>
+          <span class="label">Membros</span>
+        </div>
+        <div class="hero-stat-divider"></div>
+        <div class="hero-stat">
+          <span class="number" data-target="89">0</span>
+          <span class="label">Torneios Realizados</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SUPORTE ===== -->
+  <section class="section" id="suporte">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-tag">Ajuda</span>
+        <h2 class="section-title">Central de Suporte</h2>
+        <p class="section-desc">Tire suas dúvidas ou abra um ticket diretamente com nossa equipe.</p>
+      </div>
+
+      <div class="support-grid">
+        <div class="support-card reveal">
+          <div class="icon">🎫</div>
+          <h3>Abrir Ticket</h3>
+          <p>Precisa de ajuda personalizada? Abra um ticket e nossa equipe responderá em até 24h.</p>
+          <form onsubmit="submitSupport(event)">
+            <div class="form-group">
+              <label>Seu nome</label>
+              <input type="text" name="name" placeholder="Digite seu nome" required>
+            </div>
+            <div class="form-group">
+              <label>E-mail</label>
+              <input type="email" name="email" placeholder="seu@email.com" required>
+            </div>
+            <div class="form-group">
+              <label>Assunto</label>
+              <select name="subject">
+                <option value="">Selecione...</option>
+                <option value="duvida">Dúvida</option>
+                <option value="bug">Reportar Bug</option>
+                <option value="compra">Problema com Compra</option>
+                <option value="outro">Outro</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Mensagem</label>
+              <textarea name="message" placeholder="Descreva seu problema..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Enviar Ticket</button>
+          </form>
+          <div id="ticketCreated" style="display:none;margin-top:16px;padding:16px;background:rgba(0,255,136,0.08);border-radius:10px;text-align:center;">
+            <div style="font-size:1.5rem;margin-bottom:4px;">✅</div>
+            <p style="font-size:0.85rem;color:var(--neon-green);font-weight:600;">Ticket criado com sucesso!</p>
+            <p style="font-size:0.75rem;color:var(--text-muted);" id="ticketCreatedId"></p>
+            <button class="btn btn-ghost btn-sm" style="margin-top:8px;" onclick="viewMyTicket()">📋 Acompanhar Ticket</button>
+          </div>
+
+          <div id="ticketChat" style="display:none;margin-top:16px;">
+            <div style="background:rgba(18,18,26,0.6);border:1px solid rgba(255,255,255,0.04);border-radius:12px;padding:16px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                <strong style="font-size:0.85rem;">💬 Chat do Ticket</strong>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span id="ticketChatId" style="font-size:0.7rem;color:#666;"></span>
+                  <button onclick="closeTicketChat()" style="background:none;border:none;color:#666;cursor:pointer;font-size:1rem;padding:0;line-height:1;">✕</button>
+                </div>
+              </div>
+              <div id="ticketChatMessages" style="max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:12px;padding:4px 0;"></div>
+              <div style="display:flex;gap:8px;">
+                <input type="text" id="ticketChatInput" placeholder="Digite sua mensagem..." style="flex:1;padding:10px 14px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.06);border-radius:8px;color:#fff;font-family:var(--font);font-size:0.85rem;outline:none;">
+                <button id="ticketChatBtn" class="btn btn-primary btn-sm">Enviar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="support-card reveal">
+          <div class="icon">❓</div>
+          <h3>FAQ - Perguntas Frequentes</h3>
+          <p>Respostas rápidas para as dúvidas mais comuns.</p>
+          <div class="faq-grid">
+            <div class="faq-item" onclick="toggleFaq(this)">
+              <div class="faq-question">
+                Como funciona o VIP? <span class="faq-toggle">+</span>
+              </div>
+              <div class="faq-answer">Ao adquirir um plano VIP, você recebe benefícios exclusivos no servidor, como cargos especiais, moedas extras e acesso a salas VIP.</div>
+            </div>
+            <div class="faq-item" onclick="toggleFaq(this)">
+              <div class="faq-question">
+                Como comprar com Pix? <span class="faq-toggle">+</span>
+              </div>
+              <div class="faq-answer">Escolha seu plano na Loja VIP, clique em "Comprar Agora" e siga as instruções do Pix. O pagamento é processado instantaneamente.</div>
+            </div>
+            <div class="faq-item" onclick="toggleFaq(this)">
+              <div class="faq-question">
+                Quanto tempo leva para ativar? <span class="faq-toggle">+</span>
+              </div>
+              <div class="faq-answer">Após a confirmação do pagamento, a ativação é automática e imediata. Em casos raros, pode levar até 5 minutos.</div>
+            </div>
+            <div class="faq-item" onclick="toggleFaq(this)">
+              <div class="faq-question">
+                Como entrar no servidor? <span class="faq-toggle">+</span>
+              </div>
+              <div class="faq-answer">Entre com sua conta Discord através do botão "Entrar com Discord" e siga as instruções para acessar o servidor.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="support-card reveal">
+          <div class="icon">📋</div>
+          <h3>Meus Tickets</h3>
+          <p>Veja todos os tickets que você abriu e continue a conversa.</p>
+          <div class="search-box" style="display:flex;gap:8px;margin-bottom:12px;">
+            <input type="text" id="myTicketName" placeholder="Digite seu nome..." style="flex:1;padding:10px 14px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.06);border-radius:8px;color:#fff;font-family:var(--font);font-size:0.85rem;outline:none;" onkeydown="if(event.key==='Enter')searchMyTickets()">
+            <button class="btn btn-primary btn-sm" onclick="searchMyTickets()">Buscar</button>
+          </div>
+          <div id="trackError" style="display:none;color:var(--danger);font-size:0.75rem;margin-bottom:8px;text-align:center;">Nenhum ticket encontrado com esse nome.</div>
+          <div id="myTicketList" style="display:none;"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== DENÚNCIAS ===== -->
+  <section class="section" id="denuncias">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-tag">Segurança</span>
+        <h2 class="section-title">Sistema de Denúncias</h2>
+        <p class="section-desc">Denuncie jogadores ou comportamentos que violam as regras da comunidade.</p>
+      </div>
+
+      <div class="reports-container">
+        <div class="report-form reveal">
+          <h3 style="margin-bottom:20px;">📋 Formulário de Denúncia</h3>
+          <form onsubmit="submitReport(event)">
+            <div class="form-group">
+              <label>Seu nome / Discord</label>
+              <input type="text" name="reporter" placeholder="Seu nick ou Discord" required>
+            </div>
+            <div class="form-group">
+              <label>Jogador denunciado</label>
+              <input type="text" name="player" placeholder="Nick do jogador" required>
+            </div>
+            <div class="form-group">
+              <label>Tipo de denúncia</label>
+              <select name="reason" required>
+                <option value="">Selecione...</option>
+                <option value="toxicidade">Toxicidade / Assédio</option>
+                <option value="trapaca">Trapaça / Hack</option>
+                <option value="divulgacao">Divulgação não autorizada</option>
+                <option value="offensivo">Nome ou comportamento ofensivo</option>
+                <option value="outro">Outro</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Descrição detalhada</label>
+              <textarea name="description" placeholder="Descreva o ocorrido com o máximo de detalhes..." required></textarea>
+            </div>
+            <div class="form-group">
+              <label>Evidências (prints, vídeos)</label>
+              <div class="file-upload-wrapper">
+                <label class="file-upload-btn">
+                  <span>📎 Escolher arquivo</span>
+                  <input type="file" name="evidence" accept="image/*,video/*,.pdf" id="evidenceInput" onchange="showFileName(this)">
+                </label>
+                <span class="file-name" id="fileName">Nenhum arquivo selecionado (máx 50MB)</span>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Enviar Denúncia</button>
+          </form>
+        </div>
+
+        <div class="report-info reveal">
+          <h3>🛡️ Informações</h3>
+          <ul>
+            <li>Denúncias são anônimas</li>
+            <li>Análise em até 48h</li>
+            <li>Providências cabíveis serão tomadas</li>
+            <li>Não denuncie por vingança</li>
+            <li>Apenas denúncias com provas serão analisadas</li>
+            <li>Mantenha print das evidências</li>
+          </ul>
+        </div>
+
+        <div class="report-info reveal" style="margin-top:20px;">
+          <h3>📋 Minhas Denúncias</h3>
+          <p style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:12px;">Veja todas as denúncias que você fez e acompanhe o andamento.</p>
+          <div class="search-box" style="display:flex;gap:8px;margin-bottom:12px;">
+            <input type="text" id="myReportName" placeholder="Digite seu nome / Discord..." style="flex:1;padding:10px 14px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.06);border-radius:8px;color:#fff;font-family:var(--font);font-size:0.85rem;outline:none;" onkeydown="if(event.key==='Enter')searchMyReports()">
+            <button class="btn btn-primary btn-sm" onclick="searchMyReports()">Buscar</button>
+          </div>
+          <div id="trackReportError" style="display:none;color:var(--danger);font-size:0.75rem;margin-bottom:8px;text-align:center;">Nenhuma denúncia encontrada com esse nome.</div>
+          <div id="myReportList" style="display:none;"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== LOJA VIP ===== -->
+  <section class="section" id="vip">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-tag">Premium</span>
+        <h2 class="section-title">Loja VIP</h2>
+        <p class="section-desc">Escolha seu plano e desbloqueie benefícios exclusivos no servidor.</p>
+      </div>
+
+      <div class="store-grid" id="storeGrid"></div>
+
+    </div>
+  </section>
+
+  <!-- ===== NOSSA EQUIPE ===== -->
+  <section class="section" id="equipe">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-tag">Equipe</span>
+        <h2 class="section-title">Nossa Equipe</h2>
+        <p class="section-desc">Conheça os membros da nossa equipe responsáveis por manter a comunidade.</p>
+      </div>
+      <div class="staff-grid" id="staffGrid"></div>
+    </div>
+  </section>
+
+  <!-- ===== PIX MODAL ===== -->
+  <div class="modal-overlay" id="pixModal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('pixModal')">✕</button>
+      <h2 class="modal-title">💚 Pagamento via Pix</h2>
+      <p class="modal-desc">Finalize sua compra de forma rápida e segura.</p>
+
+      <div id="pixDetails"></div>
+
+      <div class="pix-container">
+        <div class="pix-qr-placeholder">
+          <span>🔳</span>
+          <div class="pix-scan"></div>
+        </div>
+
+        <div class="pix-key">
+          <span id="pixKeyText">efootball@vip.com.br</span>
+          <button class="copy-btn" onclick="copyPixKey()">Copiar</button>
+        </div>
+
+        <div class="pix-steps">
+          <div class="pix-step">
+            <span class="step-number">1</span>
+            Copie a chave Pix acima
+          </div>
+          <div class="pix-step">
+            <span class="step-number">2</span>
+            Abra o app do seu banco
+          </div>
+          <div class="pix-step">
+            <span class="step-number">3</span>
+            Cole a chave e faça o pagamento
+          </div>
+          <div class="pix-step">
+            <span class="step-number">4</span>
+            Envie o comprovante no Discord
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-block" style="margin-top:24px;" onclick="confirmPurchase()">
+          Já paguei — Notificar Pagamento
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== HIDDEN ADMIN PANEL ===== -->
+  <div class="modal-overlay" id="adminSecretModal">
+    <div class="modal" style="max-width:600px;">
+      <button class="modal-close" onclick="closeAdminSecret()">✕</button>
+      <div style="text-align:center;margin-bottom:20px;">
+        <div style="font-size:2rem;margin-bottom:8px;">🔐</div>
+        <h2 class="modal-title">Painel Administrativo</h2>
+        <p class="modal-desc" style="margin-bottom:16px;">Acesso restrito à equipe administrativa.</p>
+      </div>
+
+      <div id="adminSecretLogin">
+        <div class="form-group">
+          <label>Usuário</label>
+          <input type="text" id="adminSecretUser" placeholder="Nome de usuário" style="text-align:center;">
+        </div>
+        <div class="form-group">
+          <label>Senha</label>
+          <input type="password" id="adminSecretPass" placeholder="Senha" style="text-align:center;" onkeydown="if(event.key==='Enter')adminSecretAuth()">
+        </div>
+        <button class="btn btn-primary btn-block" onclick="adminSecretAuth()">Entrar</button>
+        <p id="adminSecretError" style="color:var(--danger);font-size:0.85rem;text-align:center;margin-top:10px;display:none;">Usuário ou senha inválidos</p>
+      </div>
+
+      <div id="adminSecretPanel" style="display:none;">
+        <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:100px;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:12px;text-align:center;">
+            <div style="font-size:1.5rem;font-weight:800;color:var(--neon-green);" id="secretPendingCount">0</div>
+            <div style="font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;">Pendentes</div>
+          </div>
+          <div id="ticketCreated" style="display:none;margin-top:16px;padding:16px;background:rgba(0,255,136,0.08);border-radius:10px;text-align:center;">
+            <div style="font-size:1.5rem;margin-bottom:4px;">✅</div>
+            <p style="font-size:0.85rem;color:var(--neon-green);font-weight:600;">Ticket criado com sucesso!</p>
+            <p style="font-size:0.75rem;color:var(--text-muted);" id="ticketCreatedId"></p>
+          </div>
+        </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+          <a href="admin.html?token=" class="btn btn-primary btn-sm" id="secretAdminLink" style="flex:1;">📋 Painel Completo</a>
+        </div>
+        <div id="secretTicketList" style="max-height:300px;overflow-y:auto;"></div>
+        <p style="font-size:0.7rem;color:var(--text-muted);text-align:center;margin-top:10px;opacity:0.5;">Auto-refresh a cada 15s</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TOAST CONTAINER ===== -->
+  <div class="toast-container" id="toastContainer"></div>
+
+
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-copy">© 2026 eFootball Brasil. Todos os direitos reservados.</div>
+      <div class="footer-links">
+        <a href="#">Termos de Uso</a>
+        <a href="#">Privacidade</a>
+        <a href="#">Discord</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/config.js"></script>
+  <script src="js/script.js"></script>
+  <script>
+    // === ADMIN SECRET PANEL ===
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+        e.preventDefault();
+        document.getElementById('adminSecretModal').classList.add('active');
+        document.getElementById('adminSecretLogin').style.display = 'block';
+        document.getElementById('adminSecretPanel').style.display = 'none';
+        document.getElementById('adminSecretUser').value = '';
+        document.getElementById('adminSecretPass').value = '';
+        document.getElementById('adminSecretError').style.display = 'none';
+      }
+    });
+    let logoClickCount = 0;
+    let logoClickTimer = null;
+
+    document.getElementById('logoSecret').addEventListener('click', (e) => {
+      logoClickCount++;
+      clearTimeout(logoClickTimer);
+      logoClickTimer = setTimeout(() => { logoClickCount = 0; }, 1500);
+      if (logoClickCount >= 5) {
+        logoClickCount = 0;
+        window.location.href = pageUrl('admin.html');
+      }
+    });
+
+    function closeAdminSecret() {
+      document.getElementById('adminSecretModal').classList.remove('active');
+    }
+
+    function adminSecretAuth() {
+      const username = document.getElementById('adminSecretUser').value.trim();
+      const password = document.getElementById('adminSecretPass').value;
+      if (!username || !password) return;
+      document.getElementById('adminSecretError').style.display = 'none';
+      const API_BASE = window.SITE_CONFIG?.API_BASE || '';
+      if (!API_BASE) {
+        fetch('data/users.json').then(r => r.json()).then(users => {
+          const user = users.find(u => u.username === username && u.password === password);
+          if (!user) { document.getElementById('adminSecretError').style.display = 'block'; return; }
+          document.getElementById('adminSecretLogin').style.display = 'none';
+          document.getElementById('adminSecretPanel').style.display = 'block';
+          document.getElementById('secretAdminLink').href = pageUrl('admin.html');
+        }).catch(() => { document.getElementById('adminSecretError').style.display = 'block'; });
+      } else {
+        fetch(API_BASE + '/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        })
+          .then(res => { if (!res.ok) throw new Error('Inválido'); return res.json(); })
+          .then(data => {
+            const token = data.token;
+            document.getElementById('adminSecretLogin').style.display = 'none';
+            document.getElementById('adminSecretPanel').style.display = 'block';
+            document.getElementById('secretAdminLink').href = pageUrl('admin.html');
+            sessionStorage.setItem('adminToken', token);
+            fetch(API_BASE + `/api/admin/tickets?token=${encodeURIComponent(token)}`)
+              .then(r => r.json())
+              .then(renderSecretTickets)
+              .catch(() => {});
+          })
+          .catch(() => {
+            document.getElementById('adminSecretError').style.display = 'block';
+          });
+      }
+    }
+
+    function renderSecretTickets(tickets) {
+      if (!Array.isArray(tickets)) return;
+      const pending = tickets.filter(t => t.status === 'pending');
+      document.getElementById('secretPendingCount').textContent = pending.length;
+      document.getElementById('secretTotalCount').textContent = tickets.length;
+      const list = document.getElementById('secretTicketList');
+      if (!pending.length) {
+        list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-muted);font-size:0.85rem;">✅ Nenhum ticket pendente</div>';
+        return;
+      }
+      list.innerHTML = pending.slice(0, 10).map(t => `
+        <div style="background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:8px;font-size:0.85rem;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+            <div>
+              <strong style="color:var(--text-primary);">${t.name || 'Anônimo'}</strong>
+              <span style="color:var(--text-muted);font-size:0.75rem;margin-left:8px;">${t.subject || ''}</span>
+            </div>
+            <span style="font-size:0.7rem;color:var(--text-muted);">${new Date(t.createdAt).toLocaleString('pt-BR')}</span>
+          </div>
+          <div style="color:var(--text-secondary);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">${t.message || ''}</div>
+        </div>
+      `).join('');
+    }
+
+    document.addEventListener('click', (e) => {
+      const modal = document.getElementById('adminSecretModal');
+      if (modal.classList.contains('active') && e.target === modal) {
+        closeAdminSecret();
+      }
+    });
+
+  </script>
+
+  <!-- ===== FLOATING CHAT WIDGET ===== -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+  #chatDot{position:fixed;bottom:24px;right:24px;width:40px;height:40px;border-radius:50%;background:#00ff88;border:none;color:#000;font-size:1rem;cursor:pointer;box-shadow:0 2px 12px rgba(0,255,136,0.25);z-index:9999;transition:.2s;display:flex;align-items:center;justify-content:center;opacity:.85}
+  #chatDot:hover{opacity:1;transform:scale(1.08);box-shadow:0 2px 20px rgba(0,255,136,0.4)}
+  #chatDot .badge{position:absolute;top:-2px;right:-2px;width:16px;height:16px;border-radius:50%;background:#ff3b5c;color:#fff;font-size:.5rem;font-weight:700;display:none;align-items:center;justify-content:center}
+  #chatPanel{position:fixed;bottom:72px;right:20px;width:340px;max-height:480px;background:#0c0c14;border:1px solid rgba(255,255,255,0.06);border-radius:14px;box-shadow:0 8px 40px rgba(0,0,0,0.7);z-index:9998;display:none;flex-direction:column;overflow:hidden}
+  #chatPanel.active{display:flex}
+  #chatPanel .hdr{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,0.04)}
+  #chatPanel .hdr h3{font-size:.78rem;color:#00ff88;font-weight:600}
+  #chatPanel .hdr button{background:none;border:none;color:#555;cursor:pointer;font-size:.85rem;padding:2px 6px}
+  #chatPanel .body{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:6px;min-height:180px;max-height:300px}
+  #chatPanel .body .empty{text-align:center;padding:24px 12px;color:#555;font-size:.78rem;line-height:1.5}
+  #chatPanel .msg{max-width:88%;padding:7px 12px;border-radius:10px;font-size:.78rem;line-height:1.4}
+  #chatPanel .msg.user{align-self:flex-end;background:#00ff88;color:#0a0a0f;border-bottom-right-radius:3px}
+  #chatPanel .msg.staff{align-self:flex-start;background:rgba(255,255,255,0.05);color:#ddd;border-bottom-left-radius:3px}
+  #chatPanel .msg .l{font-size:.6rem;font-weight:600;opacity:.45;margin-bottom:2px}
+  #chatPanel .msg .t{font-size:.55rem;opacity:.3;margin-top:3px}
+  #chatPanel .inputRow{display:flex;gap:6px;padding:10px 12px;border-top:1px solid rgba(255,255,255,0.04)}
+  #chatPanel .inputRow input{flex:1;padding:8px 12px;background:#000;border:1px solid rgba(255,255,255,0.06);border-radius:8px;color:#fff;font-family:inherit;font-size:.78rem;outline:none}
+  #chatPanel .inputRow input:focus{border-color:#00ff88}
+  #chatPanel .inputRow button{padding:8px 14px;background:#00ff88;color:#000;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-family:inherit;font-size:.75rem}
+  #chatPanel .nameRow{display:flex;gap:6px;padding:10px 12px;border-top:1px solid rgba(255,255,255,0.04)}
+  #chatPanel .nameRow input{flex:1;padding:8px 12px;background:#000;border:1px solid rgba(255,255,255,0.06);border-radius:8px;color:#fff;font-family:inherit;font-size:.78rem;outline:none}
+  #chatPanel .nameRow input:focus{border-color:#00ff88}
+  #chatPanel .nameRow button{padding:8px 14px;background:#00ff88;color:#000;border:none;border-radius:8px;font-weight:600;cursor:pointer;font-family:inherit;font-size:.75rem}
+  #chatPanel .status{font-size:.65rem;color:#555;text-align:center;padding:4px 0}
+  </style>
+
+  <button id="chatDot" onclick="dotChat.toggle()"><span style="font-size:1rem">⚡</span><span class="badge" id="chatBadge"></span></button>
+
+  <div id="chatPanel">
+    <div class="hdr"><h3 id="chatTitle">Atendimento</h3><button onclick="dotChat.close()">_</button></div>
+    <div class="body" id="chatBody"><div class="empty">...</div></div>
+    <div class="nameRow" id="chatNameRow">
+      <input type="text" id="chatNameInp" placeholder="Seu nome..." maxlength="30">
+      <button onclick="dotChat.start()">Ok</button>
+    </div>
+    <div class="inputRow" id="chatInputRow" style="display:none">
+      <input type="text" id="chatMsgInp" placeholder="Mensagem...">
+      <button onclick="dotChat.send()">→</button>
+    </div>
+  </div>
+
+  <script>
+  function genChatId() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  }
+
+  function getLocalTickets() {
+    try { return JSON.parse(localStorage.getItem('admin_tickets') || '[]'); }
+    catch { return []; }
+  }
+
+  function saveLocalTickets(tickets) {
+    localStorage.setItem('admin_tickets', JSON.stringify(tickets));
+  }
+
+  var STATIC_CHAT = !(window.SITE_CONFIG && window.SITE_CONFIG.API_BASE);
+
+  var dotChat = {
+    id: null, name: '', type: '', num: null, timer: null, ws: null,
+    toggle: function() {
+      var p = document.getElementById('chatPanel');
+      var d = document.getElementById('chatDot');
+      var a = p.classList.toggle('active');
+      d.style.display = a ? 'none' : 'flex';
+      if (!a) this._clean();
+    },
+    close: function() { this.toggle() },
+    _clean: function() {
+      if (this.timer) { clearInterval(this.timer); this.timer = null }
+      if (this.ws) { try { this.ws.close() }catch(e){} this.ws = null }
+    },
+    open: function(type, id, name, num) {
+      this.type = type;
+      this.id = id;
+      this.name = name;
+      this.num = num || null;
+      var label = type === 'report' ? 'Denúncia' : 'Ticket';
+      var display = num ? '#' + num : '#' + id.slice(0,6);
+      document.getElementById('chatTitle').textContent = label + ' ' + display;
+      document.getElementById('chatNameRow').style.display = 'none';
+      document.getElementById('chatInputRow').style.display = 'flex';
+      var b = document.getElementById('chatBody');
+      b.innerHTML = '<div class="empty">Conectando...</div>';
+      var p = document.getElementById('chatPanel');
+      var d = document.getElementById('chatDot');
+      p.classList.add('active');
+      d.style.display = 'none';
+      this._start();
+      setTimeout(function(){ document.getElementById('chatMsgInp').focus() }, 100);
+    },
+    _start: function() {
+      this._load();
+      if (this.timer) clearInterval(this.timer);
+      var self = this;
+      this.timer = setInterval(function(){ self._load() }, 3000);
+      if (STATIC_CHAT) return;
+      if (this.ws) { try { this.ws.close() }catch(e){} }
+      try {
+        var wsUrl = typeof WS_URL !== 'undefined' && WS_URL ? WS_URL : (location.protocol === 'https:' ? 'wss:' : 'ws:') + '//' + location.host;
+        this.ws = new WebSocket(wsUrl);
+        var self2 = this;
+        this.ws.onopen = function() { self2.ws.send(JSON.stringify({type:'join',channelType:self2.type,channelId:self2.id})) };
+        this.ws.onmessage = function(e) {
+          try { var d = JSON.parse(e.data); if (d.type === 'newMsg') self2._render(d.messages); } catch(e) {}
+        };
+        this.ws.onclose = function() { self2.ws = null };
+      } catch(e) {}
+    },
+    _load: function() {
+      if (!this.id) return;
+      var self = this;
+      if (STATIC_CHAT) {
+        var tickets = getLocalTickets();
+        var t = tickets.find(function(x) { return x.id === self.id });
+        if (t) self._render(t.messages || []);
+        return;
+      }
+      var path = this.type === 'report' ? '/api/reports/' : '/api/tickets/';
+      fetch(apiUrl(path + this.id + '/messages')).then(function(r){ return r.ok ? r.json() : [] }).then(function(msgs){ self._render(msgs) }).catch(function(){});
+    },
+    _render: function(msgs) {
+      var b = document.getElementById('chatBody');
+      if (!msgs || !msgs.length) { b.innerHTML = '<div class="empty">Nenhuma mensagem ainda.</div>'; return }
+      b.innerHTML = msgs.map(function(m) {
+        var u = m.role === 'user';
+        return '<div class="msg ' + (u ? 'user' : 'staff') + '"><div class="l">' + (u ? 'Você' : (m.name || 'Equipe')) + '</div>' + escapeHtml(m.text || '') + '<div class="t">' + (m.createdAt ? new Date(m.createdAt).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '') + '</div></div>';
+      }).join('');
+      b.scrollTop = b.scrollHeight;
+    },
+    start: function() {
+      var name = document.getElementById('chatNameInp').value.trim();
+      if (!name) return;
+      var self = this;
+      document.getElementById('chatBody').innerHTML = '<div class="empty">Abrindo...</div>';
+      document.getElementById('chatNameRow').style.display = 'none';
+      if (STATIC_CHAT) {
+        var id = genChatId();
+        var tickets = getLocalTickets();
+        var maxNum = tickets.reduce(function(max, t) { return Math.max(max, t.ticketNumber || 0); }, 0);
+        var entry = {
+          id: id,
+          name: name,
+          email: name + '@chat',
+          subject: 'Chat Rápido',
+          ticketNumber: maxNum + 1,
+          status: 'pending',
+          createdAt: new Date().toISOString(),
+          messages: [{ text: 'Olá! Preciso de ajuda.', role: 'user', name: name, createdAt: new Date().toISOString() }]
+        };
+        tickets.unshift(entry);
+        saveLocalTickets(tickets);
+        localStorage.setItem('efootball_ticket', JSON.stringify({id:id,name:name,ticketNumber:entry.ticketNumber}));
+        self.open('ticket', id, name, entry.ticketNumber);
+        return;
+      }
+      apiPost('/api/tickets', { name: name, email: name + '@chat', subject: 'Chat Rápido', message: 'Olá! Preciso de ajuda.' }).then(function(res) {
+        if (!res || !res.id) throw Error();
+        self.open('ticket', res.id, name, res.ticketNumber);
+        localStorage.setItem('efootball_ticket', JSON.stringify({id:res.id,name:name,ticketNumber:res.ticketNumber}));
+      }).catch(function() {
+        document.getElementById('chatBody').innerHTML = '<div class="empty" style="color:#ff3b5c">Erro. Tente novamente.</div>';
+        document.getElementById('chatNameRow').style.display = 'flex';
+      });
+    },
+    send: function() {
+      var inp = document.getElementById('chatMsgInp');
+      var text = inp.value.trim();
+      if (!text || !this.id) return;
+      inp.value = '';
+      var self = this;
+      if (STATIC_CHAT) {
+        var tickets = getLocalTickets();
+        var idx = tickets.findIndex(function(x) { return x.id === self.id });
+        if (idx >= 0) {
+          if (!tickets[idx].messages) tickets[idx].messages = [];
+          tickets[idx].messages.push({ text: text, role: 'user', name: self.name, createdAt: new Date().toISOString() });
+          saveLocalTickets(tickets);
+          self._load();
+        }
+        return;
+      }
+      var path = this.type === 'report' ? '/api/reports/' + this.id + '/chat' : '/api/tickets/' + this.id + '/chat';
+      apiPost(path, { name: this.name, text: text }).catch(function(){});
+    }
+  };
+
+  function escapeHtml(t) { var d = document.createElement('div'); d.textContent = t; return d.innerHTML }
+  </script>
+
+</body>
+</html>
